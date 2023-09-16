@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Hunter Hint</string>
+    <string name="filled_star">Filled star</string>
+    <string name="ground_card_square">Площадь: %d кв.км</string>
+    <string name="ground_card_hotel">Гостиница: %s</string>
+    <string name="ground_card_bath">Баня: %s</string>
+    <string name="minimum_price">Охоты от: %s</string>
+    <string name="number_of_reviews">%d отзывов</string>
+    <string name="no_photography">no photography</string>
+    <string name="share">Поделиться</string>
+    <string name="sharing_not_available">Функция недоступна</string>
+    <string name="share_text">Выбрите охотничий тур в приложении Hunter Hint!</string>
+    <string name="clouse_app">Закрыть приложение</string>
+    <string name="exit">Отмена</string>
+    <string name="empty_template">%s</string>
+
+    <string name="detailed_information">Detailed information</string>
+    <string name="back_button">Back</string>
+    <string name="sort_popular_first">Популярные</string>
+    <string name="drop_down">Drop down</string>
+    <string name="search_filter">Search filter</string>
+</resources>
