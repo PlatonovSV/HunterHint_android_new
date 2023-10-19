@@ -1,7 +1,7 @@
 package ru.openunity.hunterhint.data
 
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.model.Image
+import ru.openunity.hunterhint.models.Image
 
 object ImageRep {
     fun getPreviewImagesById(groundId: Int): List<Image> {

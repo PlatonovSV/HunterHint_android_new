@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.model
+package ru.openunity.hunterhint.models
 
 data class Ground(
     val id: Int = 0,

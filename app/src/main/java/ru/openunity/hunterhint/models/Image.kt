@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.model
+package ru.openunity.hunterhint.models
 
 import ru.openunity.hunterhint.R
 

@@ -26,7 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.model.Image
+import ru.openunity.hunterhint.models.Image
 
 
 @Composable

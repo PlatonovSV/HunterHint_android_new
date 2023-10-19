@@ -2,9 +2,9 @@ package ru.openunity.hunterhint.ui
 
 import ru.openunity.hunterhint.data.ImageRep
 import ru.openunity.hunterhint.data.ReviewRep
-import ru.openunity.hunterhint.model.Ground
-import ru.openunity.hunterhint.model.Image
-import ru.openunity.hunterhint.model.Rating
+import ru.openunity.hunterhint.models.Ground
+import ru.openunity.hunterhint.models.Image
+import ru.openunity.hunterhint.models.Rating
 
 
 data class GroundCardUiState(

@@ -1,6 +1,6 @@
 package ru.openunity.hunterhint.data
 
-import ru.openunity.hunterhint.model.Ground
+import ru.openunity.hunterhint.models.Ground
 
 object GroundRep {
     private val groundsName = listOf(

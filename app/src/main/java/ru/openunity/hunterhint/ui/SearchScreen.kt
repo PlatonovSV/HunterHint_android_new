@@ -25,13 +25,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.model.Rating
+import ru.openunity.hunterhint.models.Rating
 import ru.openunity.hunterhint.ui.components.GroundImages
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar
 import ru.openunity.hunterhint.ui.theme.uiElements_twoToneStar
@@ -113,7 +113,8 @@ fun GroundInformation(
         .fillMaxWidth()
         .clickable {
             onClick(groundCard.id)
-        }) {
+        }
+        .testTag(TestTag.GroundInfo.name)) {
         Text(
             text = groundCard.name,
             modifier = Modifier.align(Alignment.CenterHorizontally),

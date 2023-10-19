@@ -1,8 +1,7 @@
-package ru.openunity.hunterhint
+package ru.openunity.hunterhint.ui
 
 import android.content.Context
 import android.content.Intent
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,18 +36,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import ru.openunity.hunterhint.ui.GroundsPage
-import ru.openunity.hunterhint.ui.GroundsViewModel
-import ru.openunity.hunterhint.ui.SearchAppBarTitle
-import ru.openunity.hunterhint.ui.SearchScreen
-import ru.openunity.hunterhint.ui.SearchViewModel
+import ru.openunity.hunterhint.R
 
 /**
  * enum values that represent the screens in the app
  */
-enum class HunterHintScreen(@StringRes val title: Int) {
-    Search(title = R.string.app_name),
-    Detailed(title = R.string.detailed_information),
+enum class HunterHintScreen {
+    Search,
+    Detailed,
+}
+
+enum class TestTag() {
+    GroundInfo
 }
 
 /**

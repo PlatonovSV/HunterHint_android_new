@@ -30,11 +30,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -52,10 +53,10 @@ android {
 dependencies {
 
     implementation(platform("androidx.compose:compose-bom:2023.09.00"))
-    implementation("androidx.activity:activity-compose:1.7.2")
-    implementation("androidx.compose.material3:material3:1.1.1")
+    implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.compose.material3:material3:1.1.2")
     implementation("androidx.compose.runtime:runtime")
-    implementation("androidx.compose.runtime:runtime-livedata:1.5.1")
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -64,15 +65,32 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.2")
-    implementation("androidx.navigation:navigation-compose:2.7.2")
+    implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("junit:junit:4.13.2")
+
+    // Retrofit
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+
+    // Coroutines to make the HTTP requests asynchronous(In the background thread)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+
+    // Okhttp3 for the POST requests
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+
+    // Gson to convert raw JSON to pretty JSON
+    implementation("com.google.code.gson:gson:2.8.9")
 
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.09.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    androidTestImplementation("androidx.navigation:navigation-testing:2.7.2")
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.4")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
 
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.4")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
 }

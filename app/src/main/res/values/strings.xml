@@ -2,6 +2,7 @@
     <string name="app_name">Hunter Hint</string>
     <string name="filled_star">Filled star</string>
     <string name="ground_card_square">Площадь: %d кв.км</string>
+    <string name="navTest_ground_card_square">Площадь:</string>
     <string name="ground_card_hotel">Гостиница: %s</string>
     <string name="ground_card_bath">Баня: %s</string>
     <string name="minimum_price">Охоты от: %s</string>
