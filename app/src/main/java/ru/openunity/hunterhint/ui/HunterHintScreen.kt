@@ -46,9 +46,11 @@ enum class HunterHintScreen {
     Detailed,
 }
 
-enum class TestTag() {
+enum class TestTag {
     GroundInfo
 }
+
+
 
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
@@ -108,8 +110,8 @@ fun AppBar(
     showSystemUi = true)
 @Composable
 fun HunterHintApp(
-    searchViewModel: SearchViewModel = viewModel(),
-    groundsViewModel: GroundsViewModel = viewModel(),
+    searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
+    groundsPageViewModel: GroundsPageViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
@@ -130,14 +132,14 @@ fun HunterHintApp(
                     shareOrder(
                         context = context,
                         subject = context.resources.getString(R.string.app_name),
-                        summary = groundsViewModel.groundsUiState.value.ground.name
+                        summary = groundsPageViewModel.groundsUiState.value.ground.name
                     )
                 },
                 onClickSearch = {
                     shareOrder(
                         context = context,
                         subject = context.resources.getString(R.string.app_name),
-                        summary = groundsViewModel.groundsUiState.value.ground.name
+                        summary = groundsPageViewModel.groundsUiState.value.ground.name
                     )
                 },
                 currentScreen = currentScreen,
@@ -147,7 +149,7 @@ fun HunterHintApp(
         }
     ) { innerPadding ->
         val searchUiState by searchViewModel.searchUiState.collectAsState()
-        val groundsPageUiState by groundsViewModel.groundsUiState.collectAsState()
+        val groundsPageUiState by groundsPageViewModel.groundsUiState.collectAsState()
 
         NavHost(
             navController = navController,
@@ -156,13 +158,14 @@ fun HunterHintApp(
         ) {
             composable(route = HunterHintScreen.Search.name) {
                 SearchScreen(
+                    retryAction = searchViewModel::getGrounds,
                     searchUiState = searchUiState,
                     changeImage = { groundId: Int, isIncrement: Boolean ->
                         searchViewModel.changeImage(groundId, isIncrement)
                     },
                     onGroundsCardClick = { groundId: Int ->
                         run {
-                            groundsViewModel.onGroundsCardClick(groundId)
+                            groundsPageViewModel.onGroundsCardClick(groundId)
                             navController.navigate(HunterHintScreen.Detailed.name)
                         }
                     },
@@ -175,7 +178,7 @@ fun HunterHintApp(
                 screenTitle = groundsPageUiState.ground.name
                 val scrollState = rememberScrollState()
                 GroundsPage(
-                    changeImage = { isIncrement: Boolean -> groundsViewModel.changeImage(isIncrement) },
+                    changeImage = { isIncrement: Boolean -> groundsPageViewModel.changeImage(isIncrement) },
                     groundsUiState = groundsPageUiState,
                     modifier = Modifier
                         .fillMaxSize()

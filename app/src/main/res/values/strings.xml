@@ -20,4 +20,8 @@
     <string name="sort_popular_first">Популярные</string>
     <string name="drop_down">Drop down</string>
     <string name="search_filter">Search filter</string>
+    <string name="hunting_grounds_photo">Hunting grounds photo</string>
+    <string name="loading">loading</string>
+    <string name="retry">Retry</string>
+    <string name="loading_failed">Loading failed</string>
 </resources>

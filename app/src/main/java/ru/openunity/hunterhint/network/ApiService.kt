@@ -1,11 +1,12 @@
 package ru.openunity.hunterhint.network
 
-import ru.openunity.hunterhint.models.GroundsPhoto
 import retrofit2.http.GET
 import retrofit2.http.Path
+import ru.openunity.hunterhint.models.GroundsCard
 
 interface ApiService {
-
-    @GET("")
-    suspend fun getPreviewsByGroundsId(@Path("Id") id: Int): List<GroundsPhoto>
+    @GET("preview/{groundIds}")
+    suspend fun getListOfGroundsPreview(@Path("groundIds") groundIds: String): List<GroundsCard>
+    @GET("get-all")
+    suspend fun getIdsOfAllGrounds(): List<Int>
 }

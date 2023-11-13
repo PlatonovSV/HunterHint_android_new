@@ -1,6 +1,9 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
 }
 
 android {
@@ -41,7 +44,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.4.7"
     }
     packaging {
         resources {
@@ -52,7 +55,7 @@ android {
 
 dependencies {
 
-    implementation(platform("androidx.compose:compose-bom:2023.09.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
     implementation("androidx.activity:activity-compose:1.8.0")
     implementation("androidx.compose.material3:material3:1.1.2")
     implementation("androidx.compose.runtime:runtime")
@@ -67,24 +70,26 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.2")
     implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("junit:junit:4.13.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
     // Retrofit
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     // Coil
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Coroutines to make the HTTP requests asynchronous(In the background thread)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     // Okhttp3 for the POST requests
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
     // Gson to convert raw JSON to pretty JSON
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation("com.google.code.gson:gson:2.10.1")
 
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.09.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.navigation:navigation-testing:2.7.4")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")

@@ -28,17 +28,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.models.Rating
+import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.ui.components.GroundImages
+import ru.openunity.hunterhint.ui.components.Screen
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar
 import ru.openunity.hunterhint.ui.theme.uiElements_twoToneStar
 
 @Composable
 fun GroundCards(
-    groundCards: List<GroundCardUiState>,
+    groundCards: List<GroundsCard>,
     changeImage: (groundId: Int, isIncrement: Boolean) -> Unit,
     onClick: (Int) -> Unit
 ) {
@@ -56,6 +58,7 @@ fun GroundCards(
 
 @Composable
 fun SearchScreen(
+    retryAction: () -> Unit,
     searchUiState: SearchUiState,
     changeImage: (Int, Boolean) -> Unit,
     onGroundsCardClick: (Int) -> Unit,
@@ -65,47 +68,71 @@ fun SearchScreen(
         modifier = modifier,
         color = MaterialTheme.colorScheme.background
     ) {
-        GroundCards(searchUiState.cards, { groundId, isIncrement ->
-            changeImage(
-                groundId,
-                isIncrement
-            )
-        }) { groundId: Int ->
-            onGroundsCardClick(groundId)
-        }
+        Screen(state = searchUiState.state,
+            retryAction = retryAction,
+            composable = {
+                GroundCards(searchUiState.cards, { groundId, isIncrement ->
+                    changeImage(
+                        groundId,
+                        isIncrement
+                    )
+                }) { groundId: Int ->
+                    onGroundsCardClick(groundId)
+                }
+            })
     }
 }
 
 @Composable
 fun GroundItem(
-    groundCard: GroundCardUiState,
+    groundCard: GroundsCard,
     changeImage: (Boolean) -> Unit,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(modifier = modifier) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimensionResource(R.dimen.padding_small))
         ) {
-            GroundImages(
-                images = groundCard.images,
-                changeImage = changeImage,
-                numberOfCurrentImage = groundCard.numberOfCurrentImage,
-                modifier = Modifier
-                    .size(dimensionResource(id = R.dimen.image_size))
-                    .padding(dimensionResource(id = R.dimen.padding_small))
-                    .clip(MaterialTheme.shapes.medium),
-            )
-            GroundInformation(groundCard = groundCard, onClick, modifier = Modifier)
+            GroundName(groundCard = groundCard, onClick, modifier = Modifier)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                GroundImages(
+                    images = groundCard.images,
+                    changeImage = changeImage,
+                    numberOfCurrentImage = groundCard.numberOfCurrentImage,
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.image_size))
+                        .padding(dimensionResource(id = R.dimen.padding_small))
+                        .clip(MaterialTheme.shapes.medium),
+                )
+                GroundInformation(groundCard = groundCard, onClick, modifier = Modifier)
+            }
         }
     }
 }
 
 @Composable
+fun GroundName(groundCard: GroundsCard, onClick: (Int) -> Unit, modifier: Modifier) {
+    Text(
+        text = groundCard.name,
+        style = MaterialTheme.typography.displayMedium,
+        modifier = modifier
+            .clickable {
+                onClick(groundCard.id)
+            }
+            .testTag(TestTag.GroundInfo.name)
+            .fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
 fun GroundInformation(
-    groundCard: GroundCardUiState,
+    groundCard: GroundsCard,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -115,11 +142,6 @@ fun GroundInformation(
             onClick(groundCard.id)
         }
         .testTag(TestTag.GroundInfo.name)) {
-        Text(
-            text = groundCard.name,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.displayMedium
-        )
         val hotelStatus = if (groundCard.isHotel) " ✓" else " ✘"
         val bathStatus = if (groundCard.isBath) " ✓" else " ✘"
         Text(
@@ -142,19 +164,22 @@ fun GroundInformation(
             text = stringResource(id = R.string.minimum_price, groundCard.minCost),
             style = MaterialTheme.typography.labelSmall
         )
-        GroundRating(rating = groundCard.rating)
+        GroundRating(
+            rating = groundCard.rating,
+            reviewsQuantity = groundCard.reviewsQuantity
+        )
     }
 }
 
 @Composable
-fun GroundRating(rating: Rating, modifier: Modifier = Modifier) {
+fun GroundRating(rating: Double, reviewsQuantity: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RatingStars(starsQuantity = rating.rating, modifier = Modifier)
-        NumberOfReviews(number = rating.numberOfReview, modifier = Modifier)
+        RatingStars(starsQuantity = rating.toInt(), modifier = Modifier)
+        NumberOfReviews(number = reviewsQuantity, modifier = Modifier)
     }
 }
 

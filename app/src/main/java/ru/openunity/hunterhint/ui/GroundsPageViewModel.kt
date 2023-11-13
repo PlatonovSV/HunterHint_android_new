@@ -5,24 +5,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import ru.openunity.hunterhint.data.GroundRep
-import ru.openunity.hunterhint.data.ImageRep
 
-class GroundsViewModel : ViewModel() {
+class GroundsPageViewModel : ViewModel() {
 
     private val _groundsUiState = MutableStateFlow(GroundsUiState())
     val groundsUiState: StateFlow<GroundsUiState> = _groundsUiState.asStateFlow()
 
     fun onGroundsCardClick(groundId: Int) {
-        val ground = GroundRep.findGroundById(groundId = groundId)
-        val images = ImageRep.getImagesById(groundId = groundId)
-        _groundsUiState.update {
-            it.copy(
-                ground = ground,
-                images = images,
-                numberOfCurrentImage = 0
-            )
-        }
+
     }
 
     fun changeImage(increment: Boolean) {

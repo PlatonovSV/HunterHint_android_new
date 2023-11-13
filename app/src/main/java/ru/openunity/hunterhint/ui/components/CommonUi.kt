@@ -1,11 +1,11 @@
 package ru.openunity.hunterhint.ui.components
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,23 +15,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.models.Image
+import ru.openunity.hunterhint.models.Photo
+import ru.openunity.hunterhint.ui.State
 
 
 @Composable
 fun GroundImages(
-    images: List<Image>,
+    images: List<Photo>,
     changeImage: (Boolean) -> Unit,
     numberOfCurrentImage: Int,
     modifier: Modifier = Modifier,
@@ -44,7 +51,7 @@ fun GroundImages(
 
         1 -> {
             DrawImage(
-                resId = images[numberOfCurrentImage].id,
+                imgSrc = images[numberOfCurrentImage].imgSrc,
                 contentScale = contentScale,
                 modifier = modifier
             )
@@ -56,7 +63,7 @@ fun GroundImages(
             ) {
                 // Image at the top
                 DrawImage(
-                    resId = images[numberOfCurrentImage].id,
+                    imgSrc = images[numberOfCurrentImage].imgSrc,
                     contentScale = contentScale,
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -79,15 +86,18 @@ fun GroundImages(
 
 @Composable
 fun DrawImage(
-    @DrawableRes resId: Int,
+    imgSrc: String,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop
 ) {
-    Image(
-        painter = painterResource(id = resId),
-        contentDescription = null,
-        modifier = modifier,
-        contentScale = contentScale
+    AsyncImage(
+        model = ImageRequest.Builder(context = LocalContext.current).data(imgSrc)
+            .crossfade(true).build(),
+        error = painterResource(R.drawable.ic_broken_image),
+        placeholder = painterResource(R.drawable.loading_img),
+        contentDescription = stringResource(R.string.hunting_grounds_photo),
+        contentScale = contentScale,
+        modifier = modifier.fillMaxSize()
     )
 }
 
@@ -190,6 +200,56 @@ fun NavigationDots(numberOfImage: Int, quantity: Int, modifier: Modifier = Modif
                     tint = MaterialTheme.colorScheme.tertiary
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun Screen(
+    state: State,
+    retryAction: () -> Unit,
+    composable: @Composable () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        when (state) {
+            State.Loading -> LoadingScreen(Modifier.fillMaxSize())
+            State.Success -> composable()
+            State.Error -> ErrorScreen(retryAction, Modifier.fillMaxSize())
+        }
+    }
+}
+
+/**
+ * The home screen displaying the loading message.
+ */
+@Composable
+fun LoadingScreen(modifier: Modifier = Modifier) {
+    Image(
+        modifier = modifier.size(200.dp),
+        painter = painterResource(R.drawable.loading_img),
+        contentDescription = stringResource(R.string.loading)
+    )
+}
+
+/**
+ * The home screen displaying error message with re-attempt button.
+ */
+@Composable
+fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
+        )
+        Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
+        Button(onClick = retryAction) {
+            Text(stringResource(R.string.retry))
         }
     }
 }
