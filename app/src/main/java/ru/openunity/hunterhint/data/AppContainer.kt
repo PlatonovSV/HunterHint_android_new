@@ -41,7 +41,7 @@ class DefaultAppContainer : AppContainer {
             .build()
     }
 
-    /**0
+    /**
      * Retrofit service object for creating api calls
      */
     private val retrofitService: ApiService by lazy {
