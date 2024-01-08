@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +24,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -71,22 +75,11 @@ fun AppBar(
             if (currentScreen == HunterHintScreen.Search) {
                 SearchAppBarTitle(onClickSearch = onClickSearch, modifier = Modifier)
             } else {
-                Row(
-                    modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = title)
-                    IconButton(
-                        onClick = onShareButtonClicked,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Share,
-                            contentDescription = stringResource(R.string.share),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
+                GroundsPageTitle(
+                    onClickSearch = {},
+                    onClickShare = {},
+                    onClickToFavorites = {},
+                    modifier = Modifier.fillMaxWidth())
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -111,13 +104,14 @@ fun AppBar(
 @Composable
 fun HunterHintApp(
     searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
-    groundsPageViewModel: GroundsPageViewModel = viewModel(),
+    groundsPageViewModel: GroundsPageViewModel = viewModel(factory = GroundsPageViewModel.Factory),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
-    var screenTitle = stringResource(R.string.app_name)
+    var screenTitle by remember {mutableStateOf("HunterHint")}
+
     val currentScreen = HunterHintScreen.valueOf(
         backStackEntry?.destination?.route ?: HunterHintScreen.Search.name
     )
@@ -132,24 +126,25 @@ fun HunterHintApp(
                     shareOrder(
                         context = context,
                         subject = context.resources.getString(R.string.app_name),
-                        summary = groundsPageViewModel.groundsUiState.value.ground.name
+                        summary = groundsPageViewModel.groundsPageUiState.value.ground.name
                     )
                 },
                 onClickSearch = {
                     shareOrder(
                         context = context,
                         subject = context.resources.getString(R.string.app_name),
-                        summary = groundsPageViewModel.groundsUiState.value.ground.name
+                        summary = groundsPageViewModel.groundsPageUiState.value.ground.name
                     )
                 },
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() }
+                navigateUp = { navController.navigateUp() },
+                modifier = Modifier
             )
         }
     ) { innerPadding ->
         val searchUiState by searchViewModel.searchUiState.collectAsState()
-        val groundsPageUiState by groundsPageViewModel.groundsUiState.collectAsState()
+        val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
 
         NavHost(
             navController = navController,
@@ -179,7 +174,7 @@ fun HunterHintApp(
                 val scrollState = rememberScrollState()
                 GroundsPage(
                     changeImage = { isIncrement: Boolean -> groundsPageViewModel.changeImage(isIncrement) },
-                    groundsUiState = groundsPageUiState,
+                    groundsPageUiState = groundsPageUiState,
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(state = scrollState)

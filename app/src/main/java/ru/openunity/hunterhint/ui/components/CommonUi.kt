@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -97,7 +98,7 @@ fun DrawImage(
         placeholder = painterResource(R.drawable.loading_img),
         contentDescription = stringResource(R.string.hunting_grounds_photo),
         contentScale = contentScale,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     )
 }
 

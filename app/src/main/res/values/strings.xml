@@ -24,4 +24,6 @@
     <string name="loading">loading</string>
     <string name="retry">Retry</string>
     <string name="loading_failed">Loading failed</string>
+    <string name="find_in_hunter_hint">Найти охоту</string>
+    <string name="to_favorite">Добавить в избранное</string>
 </resources>
