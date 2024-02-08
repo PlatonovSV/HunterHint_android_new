@@ -12,12 +12,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -119,7 +117,7 @@ fun GroundItem(
 fun GroundName(groundCard: GroundsCard, onClick: (Int) -> Unit, modifier: Modifier) {
     Text(
         text = groundCard.name,
-        style = MaterialTheme.typography.displayMedium,
+        style = MaterialTheme.typography.displaySmall,
         modifier = modifier
             .clickable {
                 onClick(groundCard.id)
@@ -231,34 +229,20 @@ fun RatingStar(modifier: Modifier = Modifier, isFilled: Boolean = false) {
 
 /*Sorting And Filters */
 @Composable
-fun SearchAppBarTitle(onClickSearch: () -> Unit, modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .padding(0.dp, 18.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+fun SearchAppBarTitle(modifier: Modifier = Modifier) {
+    Row(modifier
+        .clip(shape = RoundedCornerShape(50.dp, 50.dp, 50.dp, 50.dp))
+        .clickable { /*TODO*/ }
+        .padding(6.dp)
     ) {
-        Row(Modifier
-            .clip(shape = RoundedCornerShape(50.dp, 50.dp, 50.dp, 50.dp))
-            .clickable { /*TODO*/ }
-            .padding(6.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.sort_popular_first),
-                fontSize = 16.sp
-            )
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                contentDescription = stringResource(R.string.drop_down)
-            )
-        }
-        IconButton(onClick = { onClickSearch() }) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = stringResource(R.string.search_filter)
-            )
-        }
+        Text(
+            text = stringResource(R.string.sort_popular_first),
+            fontSize = 16.sp
+        )
+        Icon(
+            imageVector = Icons.Filled.ArrowDropDown,
+            contentDescription = stringResource(R.string.drop_down)
+        )
     }
 }
 

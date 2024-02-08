@@ -26,6 +26,11 @@ val Typography = Typography(
     displayMedium = TextStyle(
         fontFamily = AbrilFatface,
         fontWeight = FontWeight.Bold,
+        fontSize = 30.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = AbrilFatface,
+        fontWeight = FontWeight.Bold,
         fontSize = 20.sp
     ),
     labelSmall = TextStyle(

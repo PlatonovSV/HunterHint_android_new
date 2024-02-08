@@ -26,4 +26,9 @@
     <string name="loading_failed">Loading failed</string>
     <string name="find_in_hunter_hint">Найти охоту</string>
     <string name="to_favorite">Добавить в избранное</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="enter_your_name">Enter your name</string>
+    <string name="create_account">Create a Hunter Hint Account</string>
+    <string name="next">Next</string>
 </resources>

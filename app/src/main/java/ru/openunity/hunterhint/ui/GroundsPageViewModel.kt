@@ -72,6 +72,10 @@ class GroundsPageViewModel(private val groundsRepository: GroundsRepository) : V
         }
     }
 
+    fun addToFavorite() {
+        TODO("Not yet implemented")
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

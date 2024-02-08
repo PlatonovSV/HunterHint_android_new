@@ -2,23 +2,19 @@ package ru.openunity.hunterhint.ui
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -27,10 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,52 +51,93 @@ enum class TestTag {
 }
 
 
-
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
  */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar(
-    title: String,
     canNavigateBack: Boolean,
     currentScreen: HunterHintScreen,
     navigateUp: () -> Unit,
     onClickSearch: () -> Unit,
+    groundsPageViewModel: GroundsPageViewModel,
     modifier: Modifier = Modifier,
-    onShareButtonClicked: () -> Unit = {},
 ) {
-    TopAppBar(
-        title = {
-            if (currentScreen == HunterHintScreen.Search) {
-                SearchAppBarTitle(onClickSearch = onClickSearch, modifier = Modifier)
-            } else {
-                GroundsPageTitle(
-                    onClickSearch = {},
-                    onClickShare = {},
-                    onClickToFavorites = {},
-                    modifier = Modifier.fillMaxWidth())
-            }
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        modifier = modifier,
-        navigationIcon = {
-            if (canNavigateBack) {
-                IconButton(onClick = navigateUp) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back_button)
-                    )
-                }
-            }
-        }
+    val appBarColors = TopAppBarDefaults.mediumTopAppBarColors(
+        containerColor = MaterialTheme.colorScheme.primaryContainer
     )
+    when (currentScreen) {
+        HunterHintScreen.Search -> {
+            TopAppBar(
+                title = {
+                    SearchAppBarTitle(modifier = Modifier)
+                },
+                colors = appBarColors,
+                actions = {
+                    Row {
+                        IconButton(onClick = { onClickSearch() }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.search_filter)
+                            )
+                        }
+                    }
+                },
+                modifier = modifier
+            )
+        }
+
+        HunterHintScreen.Detailed -> {
+            TopAppBar(
+                title = {
+                    GroundsPageTitle()
+                },
+                colors = appBarColors,
+                actions = {
+                    Row {
+                        IconButton(onClick = { onClickSearch() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ios_share),
+                                contentDescription = stringResource(
+                                    id = R.string.share
+                                ),
+                                modifier = Modifier.padding(8.dp, 6.dp)
+                            )
+                        }
+                        //Add ground to favorite button
+                        IconButton(onClick = groundsPageViewModel::addToFavorite) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.favorite),
+                                contentDescription = stringResource(
+                                    id = R.string.to_favorite
+                                ),
+                                modifier = Modifier.padding(0.dp, 4.dp, 8.dp, 4.dp)
+                            )
+                        }
+                    }
+                },
+                modifier = modifier,
+                navigationIcon = {
+                    if (canNavigateBack) {
+                        IconButton(onClick = navigateUp) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back_button)
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    }
 }
 
-@Preview(showBackground = true,
-    showSystemUi = true)
+@Preview(
+    showBackground = true,
+    showSystemUi = true
+)
 @Composable
 fun HunterHintApp(
     searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
@@ -110,7 +147,7 @@ fun HunterHintApp(
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
-    var screenTitle by remember {mutableStateOf("HunterHint")}
+    var screenTitle by remember { mutableStateOf("HunterHint") }
 
     val currentScreen = HunterHintScreen.valueOf(
         backStackEntry?.destination?.route ?: HunterHintScreen.Search.name
@@ -121,14 +158,9 @@ fun HunterHintApp(
         topBar = {
             val context = LocalContext.current
             AppBar(
-                title = screenTitle,
-                onShareButtonClicked = {
-                    shareOrder(
-                        context = context,
-                        subject = context.resources.getString(R.string.app_name),
-                        summary = groundsPageViewModel.groundsPageUiState.value.ground.name
-                    )
-                },
+                canNavigateBack = navController.previousBackStackEntry != null,
+                currentScreen = currentScreen,
+                navigateUp = { navController.navigateUp() },
                 onClickSearch = {
                     shareOrder(
                         context = context,
@@ -136,9 +168,7 @@ fun HunterHintApp(
                         summary = groundsPageViewModel.groundsPageUiState.value.ground.name
                     )
                 },
-                currentScreen = currentScreen,
-                canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() },
+                groundsPageViewModel = groundsPageViewModel,
                 modifier = Modifier
             )
         }
@@ -173,7 +203,11 @@ fun HunterHintApp(
                 screenTitle = groundsPageUiState.ground.name
                 val scrollState = rememberScrollState()
                 GroundsPage(
-                    changeImage = { isIncrement: Boolean -> groundsPageViewModel.changeImage(isIncrement) },
+                    changeImage = { isIncrement: Boolean ->
+                        groundsPageViewModel.changeImage(
+                            isIncrement
+                        )
+                    },
                     groundsPageUiState = groundsPageUiState,
                     modifier = Modifier
                         .fillMaxSize()
