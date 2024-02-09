@@ -2,21 +2,11 @@ package ru.openunity.hunterhint.ui
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,11 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -37,102 +23,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.ui.registration.DateRegScreen
+import ru.openunity.hunterhint.ui.registration.NameRegScreen
+import ru.openunity.hunterhint.ui.registration.RegViewModel
 
 /**
  * enum values that represent the screens in the app
  */
-enum class HunterHintScreen {
+enum class AppScreen {
     Search,
     Detailed,
+    RegName,
+    RegDate
 }
 
 enum class TestTag {
     GroundInfo
 }
 
-
-/**
- * Composable that displays the topBar and displays back button if back navigation is possible.
- */
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppBar(
-    canNavigateBack: Boolean,
-    currentScreen: HunterHintScreen,
-    navigateUp: () -> Unit,
-    onClickSearch: () -> Unit,
-    groundsPageViewModel: GroundsPageViewModel,
-    modifier: Modifier = Modifier,
-) {
-    val appBarColors = TopAppBarDefaults.mediumTopAppBarColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer
-    )
-    when (currentScreen) {
-        HunterHintScreen.Search -> {
-            TopAppBar(
-                title = {
-                    SearchAppBarTitle(modifier = Modifier)
-                },
-                colors = appBarColors,
-                actions = {
-                    Row {
-                        IconButton(onClick = { onClickSearch() }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search_filter)
-                            )
-                        }
-                    }
-                },
-                modifier = modifier
-            )
-        }
-
-        HunterHintScreen.Detailed -> {
-            TopAppBar(
-                title = {
-                    GroundsPageTitle()
-                },
-                colors = appBarColors,
-                actions = {
-                    Row {
-                        IconButton(onClick = { onClickSearch() }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ios_share),
-                                contentDescription = stringResource(
-                                    id = R.string.share
-                                ),
-                                modifier = Modifier.padding(8.dp, 6.dp)
-                            )
-                        }
-                        //Add ground to favorite button
-                        IconButton(onClick = groundsPageViewModel::addToFavorite) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.favorite),
-                                contentDescription = stringResource(
-                                    id = R.string.to_favorite
-                                ),
-                                modifier = Modifier.padding(0.dp, 4.dp, 8.dp, 4.dp)
-                            )
-                        }
-                    }
-                },
-                modifier = modifier,
-                navigationIcon = {
-                    if (canNavigateBack) {
-                        IconButton(onClick = navigateUp) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back_button)
-                            )
-                        }
-                    }
-                }
-            )
-        }
-    }
-}
 
 @Preview(
     showBackground = true,
@@ -142,6 +50,7 @@ fun AppBar(
 fun HunterHintApp(
     searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
     groundsPageViewModel: GroundsPageViewModel = viewModel(factory = GroundsPageViewModel.Factory),
+    regViewModel: RegViewModel = viewModel(factory = RegViewModel.Factory),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
@@ -149,15 +58,15 @@ fun HunterHintApp(
     // Get the name of the current screen
     var screenTitle by remember { mutableStateOf("HunterHint") }
 
-    val currentScreen = HunterHintScreen.valueOf(
-        backStackEntry?.destination?.route ?: HunterHintScreen.Search.name
+    val currentScreen = AppScreen.valueOf(
+        backStackEntry?.destination?.route ?: AppScreen.Search.name
     )
 
 
     Scaffold(
         topBar = {
             val context = LocalContext.current
-            AppBar(
+            TopAppBar(
                 canNavigateBack = navController.previousBackStackEntry != null,
                 currentScreen = currentScreen,
                 navigateUp = { navController.navigateUp() },
@@ -171,17 +80,23 @@ fun HunterHintApp(
                 groundsPageViewModel = groundsPageViewModel,
                 modifier = Modifier
             )
+        },
+        bottomBar = {
+            AppBottomAppBar(
+                currentScreen = currentScreen,
+                onClickAccount = { navController.navigate(AppScreen.RegName.name) })
         }
     ) { innerPadding ->
         val searchUiState by searchViewModel.searchUiState.collectAsState()
         val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
+        val regUiState by regViewModel.regUiState.collectAsState()
 
         NavHost(
             navController = navController,
-            startDestination = HunterHintScreen.Search.name,
+            startDestination = AppScreen.Search.name,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(route = HunterHintScreen.Search.name) {
+            composable(route = AppScreen.Search.name) {
                 SearchScreen(
                     retryAction = searchViewModel::getGrounds,
                     searchUiState = searchUiState,
@@ -191,15 +106,14 @@ fun HunterHintApp(
                     onGroundsCardClick = { groundId: Int ->
                         run {
                             groundsPageViewModel.onGroundsCardClick(groundId)
-                            navController.navigate(HunterHintScreen.Detailed.name)
+                            navController.navigate(AppScreen.Detailed.name)
                         }
                     },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(0.dp, dimensionResource(R.dimen.padding_medium))
                 )
             }
-            composable(route = HunterHintScreen.Detailed.name) {
+            composable(route = AppScreen.Detailed.name) {
                 screenTitle = groundsPageUiState.ground.name
                 val scrollState = rememberScrollState()
                 GroundsPage(
@@ -214,6 +128,30 @@ fun HunterHintApp(
                         .verticalScroll(state = scrollState)
                 )
             }
+            composable(route = AppScreen.RegName.name) {
+                NameRegScreen(
+                    userName = regViewModel.userName,
+                    regUiState = regUiState,
+                    onUserNameChanged = { regViewModel.updateUserName(it) },
+                    userLastName = regViewModel.userLastName,
+                    onClickNext = {
+                        if (regViewModel.isAllowedGo()) {
+                            navController.navigate(AppScreen.RegDate.name)
+                        }
+                    },
+                    onLastNameChanged = { regViewModel.updateUserLastName(it) },
+                    modifier = Modifier
+                )
+            }
+            composable(route = AppScreen.RegDate.name) {
+                DateRegScreen(
+                    onClickNext = { /*TODO*/ },
+                    showMonthDialog = false,
+                    showGenderDialog = false
+                )
+            }
+
+
         }
     }
 }

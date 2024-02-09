@@ -105,7 +105,7 @@ fun GroundItem(
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.image_size))
                         .padding(dimensionResource(id = R.dimen.padding_small))
-                        .clip(MaterialTheme.shapes.medium),
+                        .clip(MaterialTheme.shapes.extraLarge),
                 )
                 GroundInformation(groundCard = groundCard, onClick, modifier = Modifier)
             }

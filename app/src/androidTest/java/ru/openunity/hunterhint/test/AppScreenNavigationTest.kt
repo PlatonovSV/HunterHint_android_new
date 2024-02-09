@@ -12,11 +12,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import ru.openunity.hunterhint.ui.HunterHintApp
-import ru.openunity.hunterhint.ui.HunterHintScreen
+import ru.openunity.hunterhint.ui.AppScreen
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.TestTag
 
-class HunterHintScreenNavigationTest {
+class AppScreenNavigationTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -34,7 +34,7 @@ class HunterHintScreenNavigationTest {
 
     @Test
     fun hunterHintNavHost_verifyStartDestination() {
-        navController.assertCurrentRouteName(HunterHintScreen.Search.name)
+        navController.assertCurrentRouteName(AppScreen.Search.name)
     }
 
     @Test
@@ -46,7 +46,7 @@ class HunterHintScreenNavigationTest {
     @Test
     fun hunterHintNavHost_clickFirstGround_navigateToDetailedPage() {
         clickFirstGroundOnSearchScreen()
-        navController.assertCurrentRouteName(HunterHintScreen.Detailed.name)
+        navController.assertCurrentRouteName(AppScreen.Detailed.name)
     }
 
     private fun performNavigateUp() {
@@ -62,7 +62,7 @@ class HunterHintScreenNavigationTest {
     fun hunterHintNavHost_clickBackOnDetailedScreen_navigatesToSearchScreen() {
         clickFirstGroundOnSearchScreen()
         performNavigateUp()
-        navController.assertCurrentRouteName(HunterHintScreen.Search.name)
+        navController.assertCurrentRouteName(AppScreen.Search.name)
     }
 }
 
