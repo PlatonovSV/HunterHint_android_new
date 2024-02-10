@@ -48,4 +48,14 @@
     <string name="enter_your_birthday_and_gender">Enter your birthday and gender</string>
     <string name="name_incorrect">Are you sure you entered your name correctly?</string>
     <string name="lastname_incorrect">Are you sure you entered your last name correctly?</string>
+    <string name="basic_information">Basic information</string>
+    <string name="month">Month</string>
+    <string name="day">Day</string>
+    <string name="year">Year</string>
+    <string name="drop_down_list">Drop down list</string>
+    <string name="empty" />
+    <string name="gender">Gender</string>
+    <string name="please_fill_a_complete_birthday">Please fill a complete birthday</string>
+    <string name="please_fill_a_correct_birthday">Please fill a correct birthday</string>
+    <string name="please_select_your_gender">Please select your gender</string>
 </resources>

@@ -56,6 +56,7 @@ fun NameRegScreen(
     Column(
         modifier
             .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.surface)
             .padding(20.dp)
     ) {
         val focusRequester = remember { FocusRequester() }
@@ -81,6 +82,7 @@ fun NameRegScreen(
         )
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
+            textStyle = MaterialTheme.typography.bodyMedium,
             value = userName,
             singleLine = true,
             shape = MaterialTheme.shapes.small,
@@ -102,10 +104,13 @@ fun NameRegScreen(
         )
         Spacer(modifier = Modifier.height(14.dp))
         OutlinedTextField(
+            textStyle = MaterialTheme.typography.bodyMedium,
             value = userLastName,
             singleLine = true,
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -134,63 +139,13 @@ fun NameRegScreen(
     }
 }
 
-@Composable
-fun DateRegScreen(
-    onClickNext: () -> Unit,
-    showMonthDialog: Boolean,
-    showGenderDialog: Boolean, modifier: Modifier = Modifier
-) {
-    Column(
-        modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(36.dp))
-        Icon(
-            painter = painterResource(id = R.drawable.account_circle),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .size(36.dp),
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.create_account),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.displaySmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.enter_your_birthday_and_gender),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Spacer to fill up the available space
-        Spacer(modifier = Modifier.weight(1f))
-        when {
-            showMonthDialog -> {
-                MonthDialog(onDismissRequest = { /*TODO*/ }, onSelect = {/*TODO*/ })
-            }
-
-            showGenderDialog -> {
-                GenderDialog(onDismissRequest = { /*TODO*/ }, onSelect = {/*TODO*/ })
-            }
-
-            else -> {
-                NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.End))
-            }
-        }
-
-    }
-}
 
 @Composable
 fun WrongInput(
     textResourceId: Int,
-    modifier: Modifier = Modifier) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(0.dp,6.dp)) {
+    modifier: Modifier = Modifier
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(0.dp, 6.dp)) {
         Icon(
             imageVector = Icons.Default.Info,
             contentDescription = null, modifier = Modifier
@@ -229,19 +184,28 @@ fun GenderDialog(
                 shape = MaterialTheme.shapes.large
             )
         ) {
-            DialogItem(
-                onClick = { onSelect(Gender.MALE) },
-                stringResourceId = R.string.male,
+            GenderDialogItem(
+                onClick = onSelect,
+                gender = Gender.MALE,
                 modifier = Modifier
             )
             HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Gender.FEMALE) },
-                stringResourceId = R.string.female,
+            GenderDialogItem(
+                onClick = onSelect,
+                gender = Gender.FEMALE,
                 modifier = Modifier
             )
         }
     }
+}
+
+@Composable
+fun GenderDialogItem(onClick: (Gender) -> Unit, gender: Gender, modifier: Modifier = Modifier) {
+    DialogItem(
+        stringResourceId = gender.stringResourceId,
+        onClick = { onClick(gender) },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -255,77 +219,29 @@ fun MonthDialog(
                 shape = MaterialTheme.shapes.large
             )
         ) {
-            DialogItem(
-                onClick = { onSelect(Month.JANUARY) },
-                stringResourceId = R.string.january,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.FEBRUARY) },
-                stringResourceId = R.string.february,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.MARCH) },
-                stringResourceId = R.string.march,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.APRIL) },
-                stringResourceId = R.string.april,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.MAY) },
-                stringResourceId = R.string.may,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.JUNE) },
-                stringResourceId = R.string.june,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.JULY) },
-                stringResourceId = R.string.july,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.AUGUST) },
-                stringResourceId = R.string.august,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.SEPTEMBER) },
-                stringResourceId = R.string.september,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.OCTOBER) },
-                stringResourceId = R.string.october,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.NOVEMBER) },
-                stringResourceId = R.string.november,
-                modifier = Modifier
-            )
-            HorizontalDivider()
-            DialogItem(
-                onClick = { onSelect(Month.DECEMBER) },
-                stringResourceId = R.string.december,
-                modifier = Modifier
-            )
+            arrayListOf(
+                Month.JANUARY,
+                Month.FEBRUARY,
+                Month.MARCH,
+                Month.APRIL,
+                Month.MAY,
+                Month.JUNE,
+                Month.JULY,
+                Month.AUGUST,
+                Month.SEPTEMBER,
+                Month.OCTOBER,
+                Month.NOVEMBER,
+                Month.DECEMBER
+            ).forEach {
+                MonthDialogItem(
+                    onClick = onSelect,
+                    it,
+                    modifier = Modifier
+                )
+                if (it != Month.DECEMBER) {
+                    HorizontalDivider()
+                }
+            }
         }
     }
 }
@@ -345,6 +261,15 @@ fun HorizontalDivider(
         strokeWidth = thickness.toPx(),
         start = Offset(0f, thickness.toPx() / 2),
         end = Offset(size.width, thickness.toPx() / 2),
+    )
+}
+
+@Composable
+fun MonthDialogItem(onClick: (Month) -> Unit, month: Month, modifier: Modifier = Modifier) {
+    DialogItem(
+        stringResourceId = month.stringResourceId,
+        onClick = { onClick(month) },
+        modifier = modifier
     )
 }
 
@@ -369,14 +294,6 @@ fun DialogItem(
         Text(
             text = stringResource(id = stringResourceId), style = MaterialTheme.typography.bodyLarge
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DateRegScreenPreview() {
-    HunterHintTheme {
-        DateRegScreen(onClickNext = { /*TODO*/ }, showGenderDialog = false, showMonthDialog = false)
     }
 }
 

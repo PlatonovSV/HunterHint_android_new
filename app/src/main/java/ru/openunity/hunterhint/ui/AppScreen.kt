@@ -135,7 +135,7 @@ fun HunterHintApp(
                     onUserNameChanged = { regViewModel.updateUserName(it) },
                     userLastName = regViewModel.userLastName,
                     onClickNext = {
-                        if (regViewModel.isAllowedGo()) {
+                        if (regViewModel.isNameCorrect()) {
                             navController.navigate(AppScreen.RegDate.name)
                         }
                     },
@@ -145,9 +145,23 @@ fun HunterHintApp(
             }
             composable(route = AppScreen.RegDate.name) {
                 DateRegScreen(
-                    onClickNext = { /*TODO*/ },
-                    showMonthDialog = false,
-                    showGenderDialog = false
+                    onClickNext = {
+                        regViewModel.checkGender()
+                        regViewModel.checkBirthday()
+                    },
+                    onMonthClick = regViewModel::showMonthDialog,
+                    onGenderClick = regViewModel::showGenderDialog,
+                    onUserDayChanged = regViewModel::updateUserDay,
+                    onUserYearChanged = regViewModel::updateUserYear,
+                    userMonth = regViewModel.userMonth,
+                    regUiState = regUiState,
+                    onMonthSelect = regViewModel::updateUserMonth,
+                    onGenderSelect = regViewModel::updateUserGender,
+                    onDismissRequest = regViewModel::dismissDialogs,
+                    userDay = regViewModel.userDay,
+                    userYear = regViewModel.userYear,
+                    userGender = regViewModel.userGender,
+                    modifier = Modifier
                 )
             }
 
