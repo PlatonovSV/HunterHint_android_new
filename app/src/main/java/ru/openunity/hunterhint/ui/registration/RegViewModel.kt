@@ -19,6 +19,7 @@ import ru.openunity.hunterhint.data.GroundsRepository
 class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
 
     private val _regUiState = MutableStateFlow(RegUiState())
+    private var confirmationCode: String = ""
     val regUiState: StateFlow<RegUiState> = _regUiState.asStateFlow()
 
     var userName by mutableStateOf("")
@@ -35,6 +36,10 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     var userDay by mutableStateOf("")
         private set
     var userYear by mutableStateOf("")
+        private set
+    var userEmail by mutableStateOf("")
+        private set
+    var userConfirmationCode by mutableStateOf("")
         private set
 
 
@@ -67,6 +72,14 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     fun updateUserGender(gender: Gender) {
         userGender = gender.stringResourceId
         dismissDialogs()
+    }
+
+    fun updateEmail(userInput: String) {
+        userEmail = userInput
+    }
+
+    fun updateConfirmationCode(userInput: String) {
+        confirmationCode = userInput
     }
 
     fun showGenderDialog() {
@@ -131,6 +144,26 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
             )
         }
         return isGenderSpecified
+    }
+
+    fun reqEmailConf() {
+        confirmationCode = createConfirmationCode()
+        _regUiState.update {
+            it.copy(
+                isConfirmationRequested = true
+            )
+        }
+        userConfirmationCode = confirmationCode
+    }
+
+    private fun createConfirmationCode(): String {
+        val digit = setOf("0","1","2","3","4","5","6","7","8","9")
+        val length = 7
+        var code = ""
+        repeat(length) {
+            code += digit.random()
+        }
+        return code
     }
 
     companion object {

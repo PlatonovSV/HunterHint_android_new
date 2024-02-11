@@ -219,20 +219,7 @@ fun MonthDialog(
                 shape = MaterialTheme.shapes.large
             )
         ) {
-            arrayListOf(
-                Month.JANUARY,
-                Month.FEBRUARY,
-                Month.MARCH,
-                Month.APRIL,
-                Month.MAY,
-                Month.JUNE,
-                Month.JULY,
-                Month.AUGUST,
-                Month.SEPTEMBER,
-                Month.OCTOBER,
-                Month.NOVEMBER,
-                Month.DECEMBER
-            ).forEach {
+            Month.values().forEach {
                 MonthDialogItem(
                     onClick = onSelect,
                     it,

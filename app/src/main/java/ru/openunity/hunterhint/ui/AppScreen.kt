@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.registration.DateRegScreen
+import ru.openunity.hunterhint.ui.registration.EmailScreen
 import ru.openunity.hunterhint.ui.registration.NameRegScreen
 import ru.openunity.hunterhint.ui.registration.RegViewModel
 
@@ -34,7 +35,8 @@ enum class AppScreen {
     Search,
     Detailed,
     RegName,
-    RegDate
+    RegDate,
+    RegEmail
 }
 
 enum class TestTag {
@@ -146,8 +148,9 @@ fun HunterHintApp(
             composable(route = AppScreen.RegDate.name) {
                 DateRegScreen(
                     onClickNext = {
-                        regViewModel.checkGender()
-                        regViewModel.checkBirthday()
+                        if (regViewModel.checkBirthday() && regViewModel.checkGender()) {
+                            navController.navigate(AppScreen.RegEmail.name)
+                        }
                     },
                     onMonthClick = regViewModel::showMonthDialog,
                     onGenderClick = regViewModel::showGenderDialog,
@@ -162,6 +165,17 @@ fun HunterHintApp(
                     userYear = regViewModel.userYear,
                     userGender = regViewModel.userGender,
                     modifier = Modifier
+                )
+            }
+            composable(route = AppScreen.RegEmail.name) {
+                EmailScreen(
+                    onClickNext = { /*TODO*/ },
+                    userEmail = regViewModel.userEmail,
+                    confirmationCode = regViewModel.userConfirmationCode,
+                    onCodeChanged = regViewModel::updateConfirmationCode,
+                    requestEmailConfirmation = regViewModel::reqEmailConf,
+                    onEmailChanged = regViewModel::updateEmail,
+                    regUiState = regUiState
                 )
             }
 

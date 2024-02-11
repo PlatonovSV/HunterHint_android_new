@@ -58,4 +58,8 @@
     <string name="please_fill_a_complete_birthday">Please fill a complete birthday</string>
     <string name="please_fill_a_correct_birthday">Please fill a correct birthday</string>
     <string name="please_select_your_gender">Please select your gender</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="email">Email</string>
+    <string name="confirm">Confirm</string>
+    <string name="code">Code</string>
 </resources>

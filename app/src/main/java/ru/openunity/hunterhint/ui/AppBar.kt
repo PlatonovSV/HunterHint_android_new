@@ -103,6 +103,7 @@ fun TopAppBar(
         }
         AppScreen.RegName -> {}
         AppScreen.RegDate -> {}
+        AppScreen.RegEmail -> {}
     }
 }
 
@@ -121,6 +122,7 @@ fun AppBottomAppBar(
         }
         AppScreen.RegName -> {}
         AppScreen.RegDate -> {}
+        AppScreen.RegEmail -> {}
     }
 }
 
