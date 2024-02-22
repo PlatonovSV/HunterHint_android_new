@@ -11,5 +11,6 @@ data class RegUiState(
     val isGenderSpecified: Boolean = true,
     val isEmailCorrect: Boolean = true,
     val isConfirmationRequested: Boolean = false,
-    val isCodeCorrect: Boolean = false
+    val isCodeCorrect: Boolean = false,
+    val isPhoneWrong: Boolean = false
 )

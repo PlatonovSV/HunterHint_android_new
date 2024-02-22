@@ -12,6 +12,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,70 +41,73 @@ fun TopAppBar(
     )
     when (currentScreen) {
         AppScreen.Search -> {
-            TopAppBar(
-                title = {
-                    SearchAppBarTitle(modifier = Modifier)
-                },
-                colors = appBarColors,
-                actions = {
-                    Row {
-                        IconButton(onClick = { onClickSearch() }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search_filter)
-                            )
-                        }
+            TopAppBar(title = {
+                SearchAppBarTitle(modifier = Modifier)
+            }, colors = appBarColors, actions = {
+                Row {
+                    IconButton(onClick = { onClickSearch() }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = stringResource(R.string.search_filter)
+                        )
                     }
-                },
-                modifier = modifier
+                }
+            }, modifier = modifier
             )
         }
 
         AppScreen.Detailed -> {
-            TopAppBar(
-                title = {
-                    GroundsPageTitle()
-                },
-                colors = appBarColors,
-                actions = {
-                    Row {
-                        IconButton(onClick = { onClickSearch() }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ios_share),
-                                contentDescription = stringResource(
-                                    id = R.string.share
-                                ),
-                                modifier = Modifier.padding(8.dp, 6.dp)
-                            )
-                        }
-                        //Add ground to favorite button
-                        IconButton(onClick = groundsPageViewModel::addToFavorite) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.favorite),
-                                contentDescription = stringResource(
-                                    id = R.string.to_favorite
-                                ),
-                                modifier = Modifier.padding(0.dp, 4.dp, 8.dp, 4.dp)
-                            )
-                        }
+            TopAppBar(title = {
+                GroundsPageTitle()
+            }, colors = appBarColors, actions = {
+                Row {
+                    IconButton(onClick = { onClickSearch() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ios_share),
+                            contentDescription = stringResource(
+                                id = R.string.share
+                            ),
+                            modifier = Modifier.padding(8.dp, 6.dp)
+                        )
                     }
-                },
-                modifier = modifier,
-                navigationIcon = {
-                    if (canNavigateBack) {
-                        IconButton(onClick = navigateUp) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back_button)
-                            )
-                        }
+                    //Add ground to favorite button
+                    IconButton(onClick = groundsPageViewModel::addToFavorite) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.favorite),
+                            contentDescription = stringResource(
+                                id = R.string.to_favorite
+                            ),
+                            modifier = Modifier.padding(0.dp, 4.dp, 8.dp, 4.dp)
+                        )
                     }
                 }
-            )
+            }, modifier = modifier, navigationIcon = {
+                if (canNavigateBack) {
+                    IconButton(onClick = navigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back_button)
+                        )
+                    }
+                }
+            })
         }
+
         AppScreen.RegName -> {}
         AppScreen.RegDate -> {}
         AppScreen.RegEmail -> {}
+        AppScreen.RegPhone -> {}
+        AppScreen.RegPhoneCode -> {
+            TopAppBar(title = { Text(text = stringResource(id = R.string.choose_country)) },
+                navigationIcon = {
+                    IconButton(onClick = navigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.navigate_up)
+                        )
+                    }
+                })
+        }
     }
 }
 
@@ -113,23 +117,26 @@ fun AppBottomAppBar(
     onClickAccount: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when(currentScreen) {
+    when (currentScreen) {
         AppScreen.Search -> {
             HuntBottomAppBar(onClickAccount, modifier = modifier)
         }
+
         AppScreen.Detailed -> {
             HuntBottomAppBar(onClickAccount, modifier = modifier)
         }
+
         AppScreen.RegName -> {}
         AppScreen.RegDate -> {}
         AppScreen.RegEmail -> {}
+        AppScreen.RegPhone -> {}
+        AppScreen.RegPhoneCode -> {}
     }
 }
 
 @Composable
 fun HuntBottomAppBar(
-    onClickAccount: () -> Unit,
-    modifier: Modifier = Modifier
+    onClickAccount: () -> Unit, modifier: Modifier = Modifier
 ) {
     BottomAppBar(
         actions = {
@@ -145,7 +152,6 @@ fun HuntBottomAppBar(
                     contentDescription = "Localized description",
                 )
             }
-        },
-        modifier = modifier.height(106.dp)
+        }, modifier = modifier.height(106.dp)
     )
 }

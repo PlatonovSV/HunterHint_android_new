@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ fun EmailScreen(
     onCodeChanged: (String) -> Unit,
     requestEmailConfirmation: () -> Unit,
     onEmailChanged: (String) -> Unit,
+    onChangeEmail: () -> Unit,
     regUiState: RegUiState,
     modifier: Modifier = Modifier
 ) {
@@ -75,6 +77,7 @@ fun EmailScreen(
         OutlinedTextField(
             textStyle = MaterialTheme.typography.bodyMedium,
             value = userEmail,
+            enabled = !regUiState.isConfirmationRequested,
             singleLine = true,
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth(),
@@ -95,14 +98,17 @@ fun EmailScreen(
             keyboardActions = KeyboardActions(onDone = { requestEmailConfirmation() })
         )
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-        Button(
-            onClick = requestEmailConfirmation,
-            modifier = modifier.align(Alignment.CenterHorizontally),
-            shape = MaterialTheme.shapes.small
-        ) {
-            Text(
-                text = stringResource(R.string.confirm),
-                style = MaterialTheme.typography.labelMedium
+        if (!regUiState.isConfirmationRequested) {
+            ConfirmationButton(
+                label = R.string.confirm,
+                action = requestEmailConfirmation,
+                Modifier.align(Alignment.CenterHorizontally)
+            )
+        } else {
+            ConfirmationButton(
+                label = R.string.change_email,
+                action = onChangeEmail,
+                Modifier.align(Alignment.CenterHorizontally)
             )
         }
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
@@ -113,7 +119,9 @@ fun EmailScreen(
                     value = confirmationCode,
                     singleLine = true,
                     shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.width(110.dp).align(Alignment.CenterVertically),
+                    modifier = Modifier
+                        .width(110.dp)
+                        .align(Alignment.CenterVertically),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -143,6 +151,20 @@ fun EmailScreen(
     }
 }
 
+@Composable
+fun ConfirmationButton(@StringRes label: Int, action: () -> Unit, modifier: Modifier = Modifier) {
+    Button(
+        onClick = action,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small
+    ) {
+        Text(
+            text = stringResource(label),
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun EmailScreenPreview() {
@@ -154,6 +176,7 @@ fun EmailScreenPreview() {
             onEmailChanged = {},
             confirmationCode = "1234567",
             onCodeChanged = {},
+            onChangeEmail = {},
             regUiState = RegUiState(isConfirmationRequested = true)
         )
     }

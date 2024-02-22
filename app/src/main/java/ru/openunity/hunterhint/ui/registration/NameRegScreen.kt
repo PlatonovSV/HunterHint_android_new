@@ -102,6 +102,9 @@ fun NameRegScreen(
             ),
             keyboardActions = KeyboardActions(onDone = { focusRequester.requestFocus() })
         )
+        if (!regUiState.isNameCorrect) {
+            WrongInput(textResourceId = R.string.name_incorrect)
+        }
         Spacer(modifier = Modifier.height(14.dp))
         OutlinedTextField(
             textStyle = MaterialTheme.typography.bodyMedium,
@@ -126,12 +129,8 @@ fun NameRegScreen(
             ),
             keyboardActions = KeyboardActions(onDone = { onClickNext() })
         )
-        if (!regUiState.isNameCorrect) {
-            WrongInput(textResourceId = R.string.name_incorrect)
-        } else {
-            if (!regUiState.isLastNameCorrect) {
-                WrongInput(textResourceId = R.string.lastname_incorrect)
-            }
+        if (!regUiState.isLastNameCorrect) {
+            WrongInput(textResourceId = R.string.lastname_incorrect)
         }
         // Spacer to fill up the available space
         Spacer(modifier = Modifier.weight(1f))
@@ -219,7 +218,7 @@ fun MonthDialog(
                 shape = MaterialTheme.shapes.large
             )
         ) {
-            Month.values().forEach {
+            Month.entries.forEach {
                 MonthDialogItem(
                     onClick = onSelect,
                     it,

@@ -41,14 +41,61 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
         private set
     var userConfirmationCode by mutableStateOf("")
         private set
+    var userCountry by mutableStateOf(Country.RUSSIAN_FEDERATION)
+        private set
 
+    var userPhone by mutableStateOf("")
+
+    fun updateUserPhone(userInput: String) {
+        val numberLength = userCountry.numberFormat.count { it == 'X' }
+        if (numberLength == 0 || numberLength >= userInput.length) {
+            userPhone = userInput
+        }
+        if (regUiState.value.isPhoneWrong) {
+            _regUiState.update {
+                it.copy(
+                    isPhoneWrong = false
+                )
+            }
+        }
+    }
+
+    fun isPhoneCorrect(): Boolean {
+        val numberLength = userCountry.numberFormat.count { it == 'X' }
+        if ((numberLength == 0 && userPhone.length < 3) || (numberLength > 0 && numberLength != userPhone.length)) {
+            _regUiState.update {
+                it.copy(
+                    isPhoneWrong = true
+                )
+            }
+        }
+        return !regUiState.value.isPhoneWrong
+    }
 
     fun updateUserName(userInput: String) {
         userName = userInput
+        if (!regUiState.value.isNameCorrect) {
+            _regUiState.update {
+                it.copy(
+                    isNameCorrect = true
+                )
+            }
+        }
+    }
+
+    fun updateCountry(country: Country) {
+        userCountry = country
     }
 
     fun updateUserLastName(userInput: String) {
         userLastName = userInput
+        if (!regUiState.value.isLastNameCorrect) {
+            _regUiState.update {
+                it.copy(
+                    isLastNameCorrect = true
+                )
+            }
+        }
     }
 
     fun updateUserMonth(month: Month) {
@@ -79,7 +126,7 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     }
 
     fun updateConfirmationCode(userInput: String) {
-        confirmationCode = userInput
+        userConfirmationCode = userInput
     }
 
     fun showGenderDialog() {
@@ -122,7 +169,7 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
         val day = userDay.toIntOrNull()
         val year = userYear.toIntOrNull()
         val complete =
-            userMonth in Month.values().map { it.stringResourceId } && day != null && year != null
+            userMonth in Month.entries.map { it.stringResourceId } && day != null && year != null
         val correct = if (complete) {
             day in 1..month.days && year!! > 1900
         } else {
@@ -137,13 +184,17 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     }
 
     fun checkGender(): Boolean {
-        val isGenderSpecified = userGender in Gender.values().map { it.stringResourceId }
+        val isGenderSpecified = userGender in Gender.entries.map { it.stringResourceId }
         _regUiState.update { uiState ->
             uiState.copy(
                 isGenderSpecified = isGenderSpecified
             )
         }
         return isGenderSpecified
+    }
+
+    fun isEmailValid(): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()
     }
 
     fun reqEmailConf() {
@@ -157,13 +208,21 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     }
 
     private fun createConfirmationCode(): String {
-        val digit = setOf("0","1","2","3","4","5","6","7","8","9")
+        val digit = setOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
         val length = 7
         var code = ""
         repeat(length) {
             code += digit.random()
         }
         return code
+    }
+
+    fun changeEmail() {
+        userConfirmationCode = ""
+        confirmationCode = ""
+        _regUiState.update {
+            it.copy(isConfirmationRequested = false)
+        }
     }
 
     companion object {
@@ -178,22 +237,3 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     }
 }
 
-enum class Gender(val stringResourceId: Int) {
-    MALE(R.string.male), FEMALE(R.string.female)
-}
-
-enum class Month(val days: Int, val stringResourceId: Int) {
-    JANUARY(31, R.string.january), FEBRUARY(29, R.string.february), MARCH(
-        31,
-        R.string.march
-    ),
-    APRIL(30, R.string.april), MAY(31, R.string.may), JUNE(30, R.string.june), JULY(
-        31,
-        R.string.july
-    ),
-    AUGUST(31, R.string.august), SEPTEMBER(30, R.string.september), OCTOBER(
-        31,
-        R.string.october
-    ),
-    NOVEMBER(30, R.string.november), DECEMBER(31, R.string.december)
-}

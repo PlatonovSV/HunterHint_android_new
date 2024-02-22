@@ -23,9 +23,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.ui.registration.CountryCodeDialog
 import ru.openunity.hunterhint.ui.registration.DateRegScreen
 import ru.openunity.hunterhint.ui.registration.EmailScreen
 import ru.openunity.hunterhint.ui.registration.NameRegScreen
+import ru.openunity.hunterhint.ui.registration.PhoneRegScreen
 import ru.openunity.hunterhint.ui.registration.RegViewModel
 
 /**
@@ -36,7 +38,9 @@ enum class AppScreen {
     Detailed,
     RegName,
     RegDate,
-    RegEmail
+    RegEmail,
+    RegPhone,
+    RegPhoneCode,
 }
 
 enum class TestTag {
@@ -64,7 +68,6 @@ fun HunterHintApp(
         backStackEntry?.destination?.route ?: AppScreen.Search.name
     )
 
-
     Scaffold(
         topBar = {
             val context = LocalContext.current
@@ -86,7 +89,7 @@ fun HunterHintApp(
         bottomBar = {
             AppBottomAppBar(
                 currentScreen = currentScreen,
-                onClickAccount = { navController.navigate(AppScreen.RegName.name) })
+                onClickAccount = { navController.navigate(AppScreen.RegPhone.name) })
         }
     ) { innerPadding ->
         val searchUiState by searchViewModel.searchUiState.collectAsState()
@@ -130,6 +133,27 @@ fun HunterHintApp(
                         .verticalScroll(state = scrollState)
                 )
             }
+            composable(route = AppScreen.RegPhone.name) {
+                PhoneRegScreen(
+                    userPhone = regViewModel.userPhone,
+                    onClickNext = {
+                        if (regViewModel.isPhoneCorrect()) {
+                            navController.navigate(AppScreen.RegName.name)
+                        }
+                    },
+                    chooseCountryCode = { navController.navigate(AppScreen.RegPhoneCode.name) },
+                    onClickCancel = navController::navigateUp,
+                    regUiState = regUiState,
+                    country = regViewModel.userCountry,
+                    onPhoneChange = regViewModel::updateUserPhone
+                )
+            }
+            composable(route = AppScreen.RegPhoneCode.name) {
+                CountryCodeDialog(onCountryClick = { country ->
+                    regViewModel.updateCountry(country)
+                    navController.navigateUp()
+                })
+            }
             composable(route = AppScreen.RegName.name) {
                 NameRegScreen(
                     userName = regViewModel.userName,
@@ -170,10 +194,15 @@ fun HunterHintApp(
             composable(route = AppScreen.RegEmail.name) {
                 EmailScreen(
                     onClickNext = { /*TODO*/ },
+                    onChangeEmail = regViewModel::changeEmail,
                     userEmail = regViewModel.userEmail,
                     confirmationCode = regViewModel.userConfirmationCode,
                     onCodeChanged = regViewModel::updateConfirmationCode,
-                    requestEmailConfirmation = regViewModel::reqEmailConf,
+                    requestEmailConfirmation = {
+                        if (regViewModel.isEmailValid()) {
+                            regViewModel.reqEmailConf()
+                        }
+                    },
                     onEmailChanged = regViewModel::updateEmail,
                     regUiState = regUiState
                 )
