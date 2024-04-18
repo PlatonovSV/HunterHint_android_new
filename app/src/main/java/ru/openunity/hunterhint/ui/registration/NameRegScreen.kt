@@ -45,14 +45,14 @@ import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 
 @Composable
 fun NameRegScreen(
-    userName: String,
     regUiState: RegUiState,
     onUserNameChanged: (String) -> Unit,
-    userLastName: String,
     onClickNext: () -> Unit,
     onLastNameChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val userName = regUiState.userRegDto.name
+    val userLastName = regUiState.userRegDto.lastName
     Column(
         modifier
             .fillMaxSize()
@@ -60,27 +60,10 @@ fun NameRegScreen(
             .padding(20.dp)
     ) {
         val focusRequester = remember { FocusRequester() }
-        Spacer(modifier = Modifier.height(36.dp))
-        Icon(
-            painter = painterResource(id = R.drawable.account_circle),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .size(36.dp),
+        PageDescription(
+            pageName = stringResource(R.string.create_account),
+            pageDesc = stringResource(R.string.enter_your_name)
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.create_account),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.displaySmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.enter_your_name),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
             textStyle = MaterialTheme.typography.bodyMedium,
             value = userName,
@@ -288,7 +271,7 @@ fun DialogItem(
 @Composable
 fun NameRegScreenPreview() {
     HunterHintTheme {
-        NameRegScreen("Сергей", RegUiState(), {}, "Платонов", {}, {})
+        NameRegScreen(RegUiState(), {}, {}, {})
     }
 
 }

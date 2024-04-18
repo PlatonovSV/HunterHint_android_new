@@ -108,6 +108,31 @@ fun TopAppBar(
                     }
                 })
         }
+        AppScreen.RegPassword -> {}
+        AppScreen.RegCompletion -> {
+            TopAppBar(title = { Text(text = stringResource(R.string.registration_in_progress)) },
+                navigationIcon = {
+                    IconButton(onClick = navigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.navigate_up)
+                        )
+                    }
+                })
+        }
+        AppScreen.AuthPhone -> {}
+        AppScreen.AuthPhoneCode -> {
+            TopAppBar(title = { Text(text = stringResource(id = R.string.choose_country)) },
+                navigationIcon = {
+                    IconButton(onClick = navigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.navigate_up)
+                        )
+                    }
+                })
+        }
+        AppScreen.AuthPassword -> {}
     }
 }
 
@@ -131,6 +156,13 @@ fun AppBottomAppBar(
         AppScreen.RegEmail -> {}
         AppScreen.RegPhone -> {}
         AppScreen.RegPhoneCode -> {}
+        AppScreen.RegPassword -> {}
+        AppScreen.RegCompletion -> {
+            HuntBottomAppBar(onClickAccount, modifier = modifier)
+        }
+        AppScreen.AuthPhone -> {}
+        AppScreen.AuthPhoneCode -> {}
+        AppScreen.AuthPassword -> {}
     }
 }
 

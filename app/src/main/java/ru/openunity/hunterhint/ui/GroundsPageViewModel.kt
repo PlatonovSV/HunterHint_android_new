@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.openunity.hunterhint.HunterHintApplication
-import ru.openunity.hunterhint.data.GroundsRepository
+import ru.openunity.hunterhint.network.GroundRemoteDataSource
 import java.io.IOException
 
-class GroundsPageViewModel(private val groundsRepository: GroundsRepository) : ViewModel() {
+class GroundsPageViewModel(private val groundsRepository: GroundRemoteDataSource) : ViewModel() {
 
     private val _groundsPageUiState = MutableStateFlow(GroundsPageUiState())
     val groundsPageUiState: StateFlow<GroundsPageUiState> = _groundsPageUiState.asStateFlow()
@@ -25,9 +25,9 @@ class GroundsPageViewModel(private val groundsRepository: GroundsRepository) : V
         if (_groundsPageUiState.value.ground.id != groundId) {
             getGround(groundId)
         } else {
-            if (_groundsPageUiState.value.state != State.Success) {
+            if (_groundsPageUiState.value.state != StateE.Success) {
                 _groundsPageUiState.update {
-                    it.copy(state = State.Success)
+                    it.copy(state = StateE.Success)
                 }
             }
         }
@@ -36,21 +36,21 @@ class GroundsPageViewModel(private val groundsRepository: GroundsRepository) : V
     private fun getGround(groundId: Int) {
         viewModelScope.launch {
             _groundsPageUiState.update {
-                it.copy(state = State.Loading)
+                it.copy(state = StateE.Loading)
             }
             _groundsPageUiState.update {
                 try {
                     it.copy(
                         ground = groundsRepository.getGround(groundId),
                         numberOfCurrentImage = 0,
-                        state = State.Success
+                        state = StateE.Success
                     )
                 } catch (e: IOException) {
                     Log.e("IOException", e.toString())
-                    it.copy(state = State.Error)
+                    it.copy(state = StateE.Error)
                 } catch (e: HttpException) {
                     Log.e("HttpException", e.message())
-                    it.copy(state = State.Error)
+                    it.copy(state = StateE.Error)
                 }
             }
         }
@@ -81,7 +81,7 @@ class GroundsPageViewModel(private val groundsRepository: GroundsRepository) : V
             initializer {
                 val application =
                     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val groundsRepository = application.container.repository
+                val groundsRepository = application.appComponent.getGroundRemoteDataSource()
                 GroundsPageViewModel(groundsRepository = groundsRepository)
             }
         }

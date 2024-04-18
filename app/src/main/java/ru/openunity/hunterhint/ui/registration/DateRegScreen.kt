@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,8 +45,6 @@ fun DateRegScreen(
     onGenderClick: () -> Unit,
     onGenderSelect: (Gender) -> Unit,
     onDismissRequest: () -> Unit,
-    userDay: String,
-    userYear: String,
     userMonth: Int,
     userGender: Int,
     onUserDayChanged: (String) -> Unit,
@@ -56,6 +52,8 @@ fun DateRegScreen(
     regUiState: RegUiState,
     modifier: Modifier = Modifier
 ) {
+    val userDay = regUiState.userRegDto.birthDay
+    val userYear = regUiState.userRegDto.birthYear
     Column(
         modifier
             .fillMaxSize()
@@ -64,28 +62,9 @@ fun DateRegScreen(
     ) {
         val focusRequester1 =
             remember { FocusRequester.Companion.FocusRequesterFactory.component1() }
-        Spacer(modifier = Modifier.height(36.dp))
-        Icon(
-            painter = painterResource(id = R.drawable.account_circle),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .size(36.dp),
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.basic_information),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.displaySmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.enter_your_birthday_and_gender),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(20.dp))
 
+        PageDescription(pageName = stringResource(R.string.basic_information),
+            pageDesc = stringResource(R.string.enter_your_birthday_and_gender))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
             val sourceMonth = remember {
                 MutableInteractionSource()
@@ -115,7 +94,7 @@ fun DateRegScreen(
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
             OutlinedTextField(
                 textStyle = MaterialTheme.typography.bodyMedium,
-                value = userDay,
+                value = if (userDay == 0) "" else userDay.toString(),
                 singleLine = true,
                 shape = MaterialTheme.shapes.small,
                 modifier = Modifier
@@ -138,7 +117,7 @@ fun DateRegScreen(
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
             OutlinedTextField(
                 textStyle = MaterialTheme.typography.bodyMedium,
-                value = userYear,
+                value = if (userYear == 0) "" else userYear.toString(),
                 singleLine = true,
                 shape = MaterialTheme.shapes.small,
                 modifier = Modifier
@@ -231,8 +210,6 @@ fun DateRegScreenPreview() {
             onDismissRequest = {},
             onGenderSelect = { _ -> },
             onMonthSelect = { _ -> },
-            userDay = "23",
-            userYear = "",
             userGender = Gender.MALE.stringResourceId,
             modifier = Modifier
         )

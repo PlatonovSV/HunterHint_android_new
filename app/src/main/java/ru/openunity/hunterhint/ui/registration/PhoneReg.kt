@@ -1,8 +1,8 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,175 +14,77 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.dto.country
+import ru.openunity.hunterhint.ui.Loading
+import ru.openunity.hunterhint.ui.State
+import ru.openunity.hunterhint.ui.Success
+import ru.openunity.hunterhint.ui.authorization.PhoneAndCountry
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
-import ru.openunity.hunterhint.ui.theme.Montserrat
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PhoneRegScreen(
-    userPhone: String,
     onClickNext: () -> Unit,
     chooseCountryCode: () -> Unit,
-    onClickCancel: () -> Unit,
-    country: Country,
+    onAuth: () -> Unit,
     regUiState: RegUiState,
-    onPhoneChange: (String) -> Unit,
+    onCodeChanged: (String) -> Unit,
+    requestPhoneConfirmation: () -> Unit,
+    onPhoneChanged: () -> Unit,
+    onPhoneUpdate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val focusRequester =
-        remember { FocusRequester.Companion.FocusRequesterFactory.component1() }
+    val confirmation = regUiState.phoneConfirmation
     Column(
         modifier = modifier
             .padding(36.dp)
             .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(36.dp))
-        Icon(
-            painter = painterResource(id = R.drawable.account_circle),
-            contentDescription = null,
+        PageDescription(
+            pageName = stringResource(R.string.create_account),
+            pageDesc = stringResource(R.string.enter_your_phone_number)
+        )
+        PhoneAndCountry(
+            country = regUiState.userRegDto.country,
+            onPhoneUpdate = onPhoneUpdate,
+            chooseCountryCode = chooseCountryCode,
+            phone = regUiState.userRegDto.phoneNumber,
+            isBadPhone = regUiState.isPhoneWrong,
+            isEnabled = !confirmation.isRequested,
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .size(36.dp),
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.create_account),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.displaySmall
+        VerificationIndicator(
+            state = regUiState.state, isValid = !regUiState.isPhoneStored,
+            whenNotValid = R.string.phone_number_already_stored
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.enter_your_phone_number),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        TextField(
-            value = country.countryName,
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Center),
-            interactionSource = remember { MutableInteractionSource() }
-                .also { interactionSource ->
-                    LaunchedEffect(interactionSource) {
-                        interactionSource.interactions.collect {
-                            if (it is PressInteraction.Release) {
-                                chooseCountryCode()
-                            }
-                        }
-                    }
-                },
-  
-            modifier = Modifier
-                .height(56.dp)
-                .fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            OutlinedTextField(
-                value = "+${country.internationalCountryCode}",
-                onValueChange = {},
-                shape = RoundedCornerShape(
-                    topStart = 20.dp, topEnd = 0.dp, bottomEnd = 0.dp, bottomStart = 20.dp
-                ),
-                interactionSource = remember { MutableInteractionSource() }
-                    .also { interactionSource ->
-                        LaunchedEffect(interactionSource) {
-                            interactionSource.interactions.collect {
-                                if (it is PressInteraction.Release) {
-                                    chooseCountryCode()
-                                }
-                            }
-                        }
-                    },
-                readOnly = true,
-                singleLine = true,
-                textStyle = TextStyle(
-                    textAlign = TextAlign.Right,
-                    fontFamily = Montserrat,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 18.sp
-                ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    disabledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
-                modifier = Modifier
-                    .size(90.dp, 56.dp)
-            )
-            OutlinedTextField(
-                value = userPhone,
-                onValueChange = onPhoneChange,
-                singleLine = true,
-                shape = RoundedCornerShape(
-                    topStart = 0.dp, topEnd = 20.dp, bottomEnd = 20.dp, bottomStart = 0.dp
-                ),
-                textStyle = TextStyle(
-                    textAlign = TextAlign.Left,
-                    fontFamily = Montserrat,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 18.sp
-                ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    disabledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                isError = regUiState.isPhoneWrong,
-                modifier = Modifier
-                    .height(56.dp)
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-            )
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(
-            shape = MaterialTheme.shapes.medium, onClick = onClickNext,
-            modifier = Modifier,
-        ) {
-            Text(
-                text = stringResource(id = R.string.next),
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-        TextButton(onClick = onClickCancel) {
+        Confirmation(
+            confirmation,
+            requestPhoneConfirmation,
+            onPhoneChanged,
+            onClickNext,
+            onCodeChanged,
+            Modifier
+                .fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.surface)
+        )
+
+        TextButton(onClick = onAuth) {
             Text(
                 text = stringResource(id = R.string.already_have_account),
                 style = MaterialTheme.typography.labelLarge
@@ -235,6 +137,67 @@ fun CountryCodeItem(
     }
 }
 
+@Composable
+fun PageDescription(pageName: String, pageDesc: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(36.dp))
+        Icon(
+            painter = painterResource(id = R.drawable.account_circle),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .size(36.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = pageName,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            style = MaterialTheme.typography.displaySmall
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = pageDesc,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+fun VerificationIndicator(
+    state: State,
+    isValid: Boolean,
+    whenNotValid: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        when (state) {
+            is Loading -> {
+                Image(
+                    modifier = modifier.size(150.dp),
+                    painter = painterResource(R.drawable.loading_img),
+                    contentDescription = stringResource(state.message)
+                )
+            }
+
+            is Success -> {
+                if (!isValid) {
+                    WrongInput(textResourceId = whenNotValid)
+                }
+            }
+
+            else -> {
+                WrongInput(textResourceId = state.message)
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewCountryCodeDialog(modifier: Modifier = Modifier) {
@@ -250,13 +213,14 @@ fun PreviewCountryCodeDialog(modifier: Modifier = Modifier) {
 fun PreviewPhoneRegScreen() {
     HunterHintTheme {
         PhoneRegScreen(
-            userPhone = "",
-            onPhoneChange = {},
+            onPhoneUpdate = {},
             onClickNext = {},
-            onClickCancel = {},
+            onCodeChanged = {},
+            onPhoneChanged = {},
+            requestPhoneConfirmation = {},
+            onAuth = {},
             chooseCountryCode = {},
             regUiState = RegUiState(),
-            country = Country.RUSSIAN_FEDERATION,
             modifier = Modifier
         )
     }

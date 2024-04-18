@@ -8,8 +8,8 @@ import ru.openunity.hunterhint.models.GroundsCard
 data class SearchUiState(
     val cards: List<GroundsCard> = listOf(),
     val groundIds: List<Int> = listOf(),
-    override val state: State = State.Loading
-) : UiState(
+    override val state: StateE = StateE.Loading
+) : UiStateE(
     state
 )
 

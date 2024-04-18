@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,12 +14,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.openunity.hunterhint.HunterHintApplication
-import ru.openunity.hunterhint.data.GroundsRepository
 import ru.openunity.hunterhint.models.GroundsCard
+import ru.openunity.hunterhint.network.GroundRemoteDataSource
 import java.io.IOException
 
 
-class SearchViewModel(private val groundsRepository: GroundsRepository) : ViewModel() {
+class SearchViewModel(private val groundsRepository: GroundRemoteDataSource) : ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
     val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
 
@@ -29,34 +30,25 @@ class SearchViewModel(private val groundsRepository: GroundsRepository) : ViewMo
         getGrounds()
     }
 
-
     fun getGrounds() {
-        viewModelScope.launch {
-            _searchUiState.update {
-                it.copy(state = State.Loading)
-            }
-            _searchUiState.update {
-                try {
-                    val groundIds = groundsRepository.getIdsOfAllGrounds()
-                    val stringBuffer = StringBuffer()
-                    groundIds.forEach { id ->
-                        stringBuffer.append(id)
-                        stringBuffer.append('-')
-                    }
-                    stringBuffer.deleteCharAt(stringBuffer.lastIndex)
-                    val cards = groundsRepository.getListOfGroundsPreview(stringBuffer.toString())
-                    it.copy(
-                        cards = cards,
-                        groundIds = groundIds,
-                        state = State.Success
-                    )
-                } catch (e: IOException) {
-                    Log.e("IOException", e.toString())
-                    it.copy(state = State.Error)
-                } catch (e: HttpException) {
-                    Log.e("HttpException", e.message())
-                    it.copy(state = State.Error)
+        viewModelScope.launch(context = Dispatchers.IO) {
+            _searchUiState.update { it.copy(state = StateE.Loading) }
+
+            try {
+                val groundIds = groundsRepository.getIdsOfAllGrounds()
+                val idsString = groundIds.joinToString(separator = "-")
+
+                val cards = groundsRepository.getListOfGroundsPreview(idsString)
+
+                _searchUiState.update {
+                    it.copy(cards = cards, groundIds = groundIds, state = StateE.Success)
                 }
+            } catch (e: IOException) {
+                Log.e("IOException", e.toString())
+                _searchUiState.update { it.copy(state = StateE.Error) }
+            } catch (e: HttpException) {
+                Log.e("HttpException", e.message())
+                _searchUiState.update { it.copy(state = StateE.Error) }
             }
         }
     }
@@ -92,14 +84,14 @@ class SearchViewModel(private val groundsRepository: GroundsRepository) : ViewMo
     }
 
     /**
-     * Factory for [SearchViewModel] that takes [GroundsRepository] as a dependency
+     * Factory for [SearchViewModel] that takes [GroundRemoteDataSource] as a dependency
      */
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application =
                     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val groundsRepository = application.container.repository
+                val groundsRepository = application.appComponent.getGroundRemoteDataSource()
                 SearchViewModel(groundsRepository = groundsRepository)
             }
         }

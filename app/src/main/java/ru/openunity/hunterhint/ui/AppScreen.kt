@@ -23,10 +23,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.ui.authorization.AuthViewModel
+import ru.openunity.hunterhint.ui.authorization.PasswordAuthScreen
+import ru.openunity.hunterhint.ui.authorization.PhoneAuthScreen
+import ru.openunity.hunterhint.ui.registration.CompletionRegScreen
 import ru.openunity.hunterhint.ui.registration.CountryCodeDialog
 import ru.openunity.hunterhint.ui.registration.DateRegScreen
 import ru.openunity.hunterhint.ui.registration.EmailScreen
 import ru.openunity.hunterhint.ui.registration.NameRegScreen
+import ru.openunity.hunterhint.ui.registration.PasswordScreen
 import ru.openunity.hunterhint.ui.registration.PhoneRegScreen
 import ru.openunity.hunterhint.ui.registration.RegViewModel
 
@@ -41,6 +46,11 @@ enum class AppScreen {
     RegEmail,
     RegPhone,
     RegPhoneCode,
+    RegPassword,
+    RegCompletion,
+    AuthPhone,
+    AuthPhoneCode,
+    AuthPassword
 }
 
 enum class TestTag {
@@ -57,6 +67,7 @@ fun HunterHintApp(
     searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
     groundsPageViewModel: GroundsPageViewModel = viewModel(factory = GroundsPageViewModel.Factory),
     regViewModel: RegViewModel = viewModel(factory = RegViewModel.Factory),
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
@@ -95,6 +106,7 @@ fun HunterHintApp(
         val searchUiState by searchViewModel.searchUiState.collectAsState()
         val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
         val regUiState by regViewModel.regUiState.collectAsState()
+        val authUiState by authViewModel.authUiState.collectAsState()
 
         NavHost(
             navController = navController,
@@ -135,17 +147,18 @@ fun HunterHintApp(
             }
             composable(route = AppScreen.RegPhone.name) {
                 PhoneRegScreen(
-                    userPhone = regViewModel.userPhone,
                     onClickNext = {
-                        if (regViewModel.isPhoneCorrect()) {
+                        if (regUiState.phoneConfirmation.isValid()) {
                             navController.navigate(AppScreen.RegName.name)
                         }
                     },
+                    onCodeChanged = regViewModel::updatePhoneConfirmationCode,
+                    requestPhoneConfirmation = regViewModel::requestPhoneConfirmation,
+                    onPhoneChanged = regViewModel::changePhone,
                     chooseCountryCode = { navController.navigate(AppScreen.RegPhoneCode.name) },
-                    onClickCancel = navController::navigateUp,
+                    onAuth = { navController.navigate(AppScreen.AuthPhone.name) },
                     regUiState = regUiState,
-                    country = regViewModel.userCountry,
-                    onPhoneChange = regViewModel::updateUserPhone
+                    onPhoneUpdate = regViewModel::updatePhone
                 )
             }
             composable(route = AppScreen.RegPhoneCode.name) {
@@ -156,10 +169,8 @@ fun HunterHintApp(
             }
             composable(route = AppScreen.RegName.name) {
                 NameRegScreen(
-                    userName = regViewModel.userName,
                     regUiState = regUiState,
                     onUserNameChanged = { regViewModel.updateUserName(it) },
-                    userLastName = regViewModel.userLastName,
                     onClickNext = {
                         if (regViewModel.isNameCorrect()) {
                             navController.navigate(AppScreen.RegDate.name)
@@ -185,30 +196,84 @@ fun HunterHintApp(
                     onMonthSelect = regViewModel::updateUserMonth,
                     onGenderSelect = regViewModel::updateUserGender,
                     onDismissRequest = regViewModel::dismissDialogs,
-                    userDay = regViewModel.userDay,
-                    userYear = regViewModel.userYear,
                     userGender = regViewModel.userGender,
                     modifier = Modifier
                 )
             }
             composable(route = AppScreen.RegEmail.name) {
                 EmailScreen(
-                    onClickNext = { /*TODO*/ },
-                    onChangeEmail = regViewModel::changeEmail,
-                    userEmail = regViewModel.userEmail,
-                    confirmationCode = regViewModel.userConfirmationCode,
-                    onCodeChanged = regViewModel::updateConfirmationCode,
-                    requestEmailConfirmation = {
-                        if (regViewModel.isEmailValid()) {
-                            regViewModel.reqEmailConf()
+                    onClickNext = {
+                        if (regUiState.emailConfirmation.isValid()) {
+                            navController.navigate(AppScreen.RegPassword.name)
                         }
                     },
-                    onEmailChanged = regViewModel::updateEmail,
+                    onUpdateEmail = regViewModel::updateEmail,
+                    onCodeChanged = regViewModel::updateEmailConfirmationCode,
+                    requestEmailConfirmation = regViewModel::requestEmailConfirmation,
+                    onEmailChanged = regViewModel::changeEmail,
                     regUiState = regUiState
                 )
             }
-
-
+            composable(route = AppScreen.RegPassword.name) {
+                PasswordScreen(
+                    regUiState = regUiState,
+                    onPasswordChanged = regViewModel::updatePassword,
+                    onClickShowPassword = regViewModel::showPassword,
+                    onClickNext = {
+                        if (regViewModel.validatePassword()) {
+                            regViewModel.requestRegistration()
+                            navController.popBackStack(AppScreen.Search.name, false)
+                            navController.navigate(AppScreen.RegCompletion.name)
+                        }
+                    })
+            }
+            composable(route = AppScreen.RegCompletion.name) {
+                CompletionRegScreen(
+                    state = regUiState.state,
+                    retryAction = regViewModel::requestRegistration,
+                    cancelAction = {
+                        regViewModel.onRegCompete()
+                        navController.navigate(AppScreen.Search.name)
+                    },
+                    onComplete = {
+                        regViewModel.onRegCompete()
+                        navController.navigate(AppScreen.Search.name)
+                    }
+                )
+            }
+            composable(route = AppScreen.AuthPhone.name) {
+                PhoneAuthScreen(
+                    onClickNext = {
+                        if (authViewModel.checkConfirmation()) {
+                            navController.navigate(AppScreen.AuthPassword.name)
+                        }
+                    },
+                    chooseCountryCode = { navController.navigate(AppScreen.AuthPhoneCode.name) },
+                    onRegistration = { navController.navigate(AppScreen.RegPhone.name) },
+                    uiState = authUiState,
+                    onCodeChanged = authViewModel::updatePhoneConfirmationCode,
+                    requestPhoneConfirmation = authViewModel::requestPhoneConfirmation,
+                    onPhoneChanged = authViewModel::changePhone,
+                    onPhoneUpdate = authViewModel::updatePhone
+                )
+            }
+            composable(route = AppScreen.AuthPhoneCode.name) {
+                CountryCodeDialog(onCountryClick = { country ->
+                    authViewModel.updateCountry(country)
+                    navController.navigateUp()
+                })
+            }
+            composable(route = AppScreen.AuthPassword.name) {
+                if (authUiState.isAuthSuccess) {
+                    navController.popBackStack(AppScreen.Search.name, false)
+                }
+                PasswordAuthScreen(
+                    uiState = authUiState,
+                    onPasswordChanged = authViewModel::changePassword,
+                    onClickShowPassword = authViewModel::showPassword,
+                    onAuth = authViewModel::onClickAuth
+                )
+            }
         }
     }
 }

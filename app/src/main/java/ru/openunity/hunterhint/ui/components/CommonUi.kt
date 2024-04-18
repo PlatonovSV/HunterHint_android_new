@@ -1,6 +1,5 @@
 package ru.openunity.hunterhint.ui.components
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,14 +7,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +35,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.Photo
+import ru.openunity.hunterhint.ui.AppError
+import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.State
+import ru.openunity.hunterhint.ui.StateE
+import ru.openunity.hunterhint.ui.Success
 
 
 @Composable
@@ -137,7 +142,7 @@ fun ImageChanger(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Icon(
-                imageVector = Icons.Filled.KeyboardArrowLeft,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
@@ -155,7 +160,7 @@ fun ImageChanger(
                     .size(35.dp)
             )
             Icon(
-                imageVector = Icons.Filled.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
@@ -206,8 +211,8 @@ fun NavigationDots(numberOfImage: Int, quantity: Int, modifier: Modifier = Modif
 }
 
 @Composable
-fun Screen(
-    state: State,
+fun ScreenE(
+    state: StateE,
     retryAction: () -> Unit,
     composable: @Composable () -> Unit,
     modifier: Modifier = Modifier
@@ -216,9 +221,28 @@ fun Screen(
         modifier = modifier.fillMaxSize()
     ) {
         when (state) {
-            State.Loading -> LoadingScreen(Modifier.fillMaxSize())
-            State.Success -> composable()
-            State.Error -> ErrorScreen(retryAction, Modifier.fillMaxSize())
+            StateE.Loading -> LoadingScreenE(Modifier.fillMaxSize())
+            StateE.Success -> composable()
+            StateE.Error -> ErrorScreenE(retryAction, Modifier.fillMaxSize())
+        }
+    }
+}
+
+@Composable
+fun Screen(
+    state: State,
+    retryAction: () -> Unit,
+    cancelAction: () -> Unit,
+    composable: @Composable () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        when (state) {
+            is Loading -> LoadingScreen(state, Modifier.fillMaxSize())
+            is Success -> composable()
+            is AppError -> ErrorScreen(state, cancelAction, retryAction, Modifier.fillMaxSize())
         }
     }
 }
@@ -227,7 +251,7 @@ fun Screen(
  * The home screen displaying the loading message.
  */
 @Composable
-fun LoadingScreen(modifier: Modifier = Modifier) {
+fun LoadingScreenE(modifier: Modifier = Modifier) {
     Image(
         modifier = modifier.size(200.dp),
         painter = painterResource(R.drawable.loading_img),
@@ -239,7 +263,7 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
  * The home screen displaying error message with re-attempt button.
  */
 @Composable
-fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreenE(retryAction: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -251,6 +275,38 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
         Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
         Button(onClick = retryAction) {
             Text(stringResource(R.string.retry))
+        }
+    }
+}
+
+@Composable
+fun LoadingScreen(state: Loading, modifier: Modifier = Modifier) {
+    Image(
+        modifier = modifier.size(200.dp),
+        painter = painterResource(R.drawable.loading_img),
+        contentDescription = stringResource(state.message)
+    )
+}
+
+@Composable
+fun ErrorScreen(state: AppError, retryAction: () -> Unit,cancelAction: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = state.imageId), contentDescription = ""
+        )
+        Text(text = stringResource(state.message), modifier = Modifier.padding(16.dp))
+        if (state.isRepeatPossible) {
+            Button(onClick = retryAction) {
+                Text(stringResource(R.string.retry))
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+        }
+        Button(onClick = cancelAction) {
+            Text(stringResource(R.string.cancel))
         }
     }
 }

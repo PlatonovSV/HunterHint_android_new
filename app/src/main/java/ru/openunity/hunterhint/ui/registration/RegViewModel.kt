@@ -1,132 +1,297 @@
 package ru.openunity.hunterhint.ui.registration
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 import ru.openunity.hunterhint.HunterHintApplication
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.data.GroundsRepository
+import ru.openunity.hunterhint.data.UserRepository
+import ru.openunity.hunterhint.dto.UserRegDto
+import ru.openunity.hunterhint.dto.birthMonth
+import ru.openunity.hunterhint.dto.country
+import ru.openunity.hunterhint.network.UserRemoteDataSource
+import ru.openunity.hunterhint.ui.AppError
+import ru.openunity.hunterhint.ui.Loading
+import ru.openunity.hunterhint.ui.Success
+import java.io.IOException
+import java.util.regex.Pattern
 
-class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
+class RegViewModel(private val repository: UserRepository) : ViewModel() {
 
     private val _regUiState = MutableStateFlow(RegUiState())
-    private var confirmationCode: String = ""
     val regUiState: StateFlow<RegUiState> = _regUiState.asStateFlow()
 
-    var userName by mutableStateOf("")
-        private set
-
-    var userLastName by mutableStateOf("")
-        private set
 
     var userMonth by mutableIntStateOf(R.string.month)
         private set
-    private var month: Month = Month.JANUARY
     var userGender by mutableIntStateOf(R.string.gender)
         private set
-    var userDay by mutableStateOf("")
-        private set
-    var userYear by mutableStateOf("")
-        private set
-    var userEmail by mutableStateOf("")
-        private set
-    var userConfirmationCode by mutableStateOf("")
-        private set
-    var userCountry by mutableStateOf(Country.RUSSIAN_FEDERATION)
-        private set
 
-    var userPhone by mutableStateOf("")
 
-    fun updateUserPhone(userInput: String) {
-        val numberLength = userCountry.numberFormat.count { it == 'X' }
-        if (numberLength == 0 || numberLength >= userInput.length) {
-            userPhone = userInput
+    fun requestRegistration() {
+        viewModelScope.launch(context = Dispatchers.IO) {
+            _regUiState.update { it.copy(state = Loading(R.string.loading)) }
+
+            try {
+                val userId = repository.createUser(_regUiState.value.userRegDto)
+                _regUiState.update {
+                    when (userId) {
+                        -2L -> {
+                            it.copy(
+                                state = AppError(R.string.server_error, true),
+                            )
+                        }
+
+                        -1L -> {
+                            it.copy(
+                                state = AppError(R.string.server_denied, false),
+                            )
+                        }
+
+                        else -> {
+                            it.copy(
+                                state = Success(R.string.registration_completed_successfully),
+                                userRegDto = UserRegDto()
+                            )
+                        }
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("IOException", e.toString())
+                _regUiState.update { it.copy(state = AppError(R.string.server_error, true)) }
+            } catch (e: HttpException) {
+                Log.e("HttpException", e.message())
+                _regUiState.update { it.copy(state = AppError(R.string.no_internet, true)) }
+            }
         }
-        if (regUiState.value.isPhoneWrong) {
+    }
+
+    private fun checkIfPhoneStored() {
+        runBlocking {
             _regUiState.update {
                 it.copy(
-                    isPhoneWrong = false
+                    isPhoneStored = true,
+                    state = Loading(R.string.loading)
+                )
+            }
+
+            try {
+                val dto = _regUiState.value.userRegDto
+                val isStored = repository.isPhoneStored(dto.phoneNumber, dto.countryCode)
+                _regUiState.update {
+                    it.copy(
+                        state = Success(R.string.empty),
+                        isPhoneStored = isStored
+                    )
+                }
+            } catch (e: IOException) {
+                Log.e("IOException", e.toString())
+                _regUiState.update {
+                    it.copy(
+                        state = AppError(R.string.no_internet, true)
+                    )
+                }
+            } catch (e: HttpException) {
+                Log.e("HttpException", e.toString())
+                _regUiState.update { it.copy(state = AppError(R.string.server_error, true)) }
+            }
+        }
+    }
+
+    private fun checkIfEmailStored() {
+        runBlocking {
+            _regUiState.update {
+                it.copy(
+                    isEmailStored = true,
+                    state = Loading(R.string.loading)
+                )
+            }
+
+            try {
+                val dto = _regUiState.value.userRegDto
+                val isStored = repository.isEmailStored(dto.email)
+                _regUiState.update {
+                    it.copy(
+                        state = Success(R.string.empty),
+                        isEmailStored = isStored
+                    )
+                }
+            } catch (e: IOException) {
+                Log.e("IOException", e.toString())
+                _regUiState.update {
+                    it.copy(
+                        state = AppError(R.string.no_internet, true)
+                    )
+                }
+            } catch (e: HttpException) {
+                Log.e("HttpException", e.toString())
+                _regUiState.update { it.copy(state = AppError(R.string.server_error, true)) }
+            }
+        }
+    }
+
+    fun updatePhone(userInput: String) {
+        val numberLength = _regUiState.value.userRegDto.country.numberFormat.count { it == 'X' }
+        if (numberLength == 0 || numberLength >= userInput.length || userInput.length <=
+            _regUiState.value.userRegDto.phoneNumber.length
+        ) {
+            _regUiState.update {
+                it.copy(
+                    isPhoneStored = false,
+                    isPhoneWrong = false,
+                    userRegDto = it.userRegDto.copy(
+                        phoneNumber = userInput
+                    )
                 )
             }
         }
     }
 
-    fun isPhoneCorrect(): Boolean {
-        val numberLength = userCountry.numberFormat.count { it == 'X' }
-        if ((numberLength == 0 && userPhone.length < 3) || (numberLength > 0 && numberLength != userPhone.length)) {
-            _regUiState.update {
-                it.copy(
-                    isPhoneWrong = true
-                )
-            }
+    private fun isPhoneCorrect(): Boolean {
+        val userInputLength = _regUiState.value.userRegDto.phoneNumber.length
+        val numberLength = _regUiState.value.userRegDto.country.numberFormat.count { it == 'X' }
+        val isWrong = (numberLength == 0 && userInputLength <= 3) ||
+                (numberLength != userInputLength)
+        _regUiState.update {
+            it.copy(
+                isPhoneWrong = isWrong,
+            )
         }
-        return !regUiState.value.isPhoneWrong
+        return !isWrong
     }
+
 
     fun updateUserName(userInput: String) {
-        userName = userInput
-        if (!regUiState.value.isNameCorrect) {
-            _regUiState.update {
-                it.copy(
-                    isNameCorrect = true
+        _regUiState.update {
+            it.copy(
+                isNameCorrect = true,
+                userRegDto = it.userRegDto.copy(
+                    name = userInput
                 )
-            }
+            )
         }
     }
 
     fun updateCountry(country: Country) {
-        userCountry = country
+        _regUiState.update {
+            it.copy(
+                userRegDto = it.userRegDto.copy(
+                    countryCode = country.cCode
+                )
+            )
+        }
     }
 
     fun updateUserLastName(userInput: String) {
-        userLastName = userInput
-        if (!regUiState.value.isLastNameCorrect) {
-            _regUiState.update {
-                it.copy(
-                    isLastNameCorrect = true
+        _regUiState.update {
+            it.copy(
+                isLastNameCorrect = true,
+                userRegDto = it.userRegDto.copy(
+                    lastName = userInput
                 )
-            }
+            )
         }
     }
 
     fun updateUserMonth(month: Month) {
         userMonth = month.stringResourceId
-        this.month = month
+        _regUiState.update {
+            it.copy(
+                userRegDto = it.userRegDto.copy(
+                    birthMonthCode = month.mCode
+                )
+            )
+        }
         dismissDialogs()
     }
 
     fun updateUserDay(userInput: String) {
-        if (userInput.length <= 2) {
-            userDay = userInput
+        val day = userInput.toIntOrNull()
+        if (day != null && day <= 99) {
+            _regUiState.update {
+                it.copy(
+                    userRegDto = it.userRegDto.copy(
+                        birthDay = day
+                    )
+                )
+            }
         }
     }
 
     fun updateUserYear(userInput: String) {
-        if (userInput.length <= 4) {
-            userYear = userInput
+        val year = userInput.toIntOrNull()
+        if (year != null && year <= 9999) {
+            _regUiState.update {
+                it.copy(
+                    userRegDto = it.userRegDto.copy(
+                        birthYear = year
+                    )
+                )
+            }
         }
     }
 
     fun updateUserGender(gender: Gender) {
         userGender = gender.stringResourceId
+        _regUiState.update {
+            it.copy(
+                userRegDto = it.userRegDto.copy(
+                    genderCode = gender.gCode
+                )
+            )
+        }
         dismissDialogs()
     }
 
-    fun updateEmail(userInput: String) {
-        userEmail = userInput
+    fun changeEmail(userInput: String) {
+        _regUiState.update {
+            it.copy(
+                isEmailCorrect = true,
+                userRegDto = it.userRegDto.copy(
+                    email = userInput
+                )
+            )
+        }
     }
 
-    fun updateConfirmationCode(userInput: String) {
-        userConfirmationCode = userInput
+    fun updatePassword(userInput: String) {
+        _regUiState.update {
+            it.copy(
+                userRegDto = it.userRegDto.copy(
+                    password = userInput
+                )
+            )
+        }
+    }
+
+    fun updateEmailConfirmationCode(userInput: String) {
+        _regUiState.update {
+            it.copy(
+                emailConfirmation = it.emailConfirmation.copy(userInput = userInput)
+            )
+        }
+    }
+
+    fun updatePhoneConfirmationCode(userInput: String) {
+        _regUiState.update {
+            it.copy(
+                phoneConfirmation = it.phoneConfirmation.copy(userInput = userInput)
+            )
+        }
     }
 
     fun showGenderDialog() {
@@ -149,13 +314,13 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
 
     private fun checkName() {
         _regUiState.update {
-            it.copy(isNameCorrect = (userName.length > 3))
+            it.copy(isNameCorrect = (_regUiState.value.userRegDto.name.length > 3))
         }
     }
 
     private fun checkLastName() {
         _regUiState.update {
-            it.copy(isLastNameCorrect = (userLastName.length > 3))
+            it.copy(isLastNameCorrect = (_regUiState.value.userRegDto.lastName.length > 3))
         }
     }
 
@@ -166,12 +331,13 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
     }
 
     fun checkBirthday(): Boolean {
-        val day = userDay.toIntOrNull()
-        val year = userYear.toIntOrNull()
+        val day = _regUiState.value.userRegDto.birthDay
+        val year = _regUiState.value.userRegDto.birthYear
+        val month = _regUiState.value.userRegDto.birthMonth
         val complete =
-            userMonth in Month.entries.map { it.stringResourceId } && day != null && year != null
+            userMonth in Month.entries.map { it.stringResourceId }
         val correct = if (complete) {
-            day in 1..month.days && year!! > 1900
+            day in 1..month.days && year > 1900
         } else {
             false
         }
@@ -193,18 +359,41 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
         return isGenderSpecified
     }
 
-    fun isEmailValid(): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()
+    private fun isEmailValid(): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(_regUiState.value.userRegDto.email)
+            .matches()
     }
 
-    fun reqEmailConf() {
-        confirmationCode = createConfirmationCode()
-        _regUiState.update {
-            it.copy(
-                isConfirmationRequested = true
-            )
+    fun requestEmailConfirmation() {
+        checkIfEmailStored()
+        if (isEmailValid() && !_regUiState.value.isEmailStored) {
+            val code = createConfirmationCode()
+            _regUiState.update {
+                it.copy(
+                    emailConfirmation = it.emailConfirmation.copy(
+                        userInput = code,
+                        code = code,
+                        isRequested = true
+                    )
+                )
+            }
         }
-        userConfirmationCode = confirmationCode
+    }
+
+    fun requestPhoneConfirmation() {
+        checkIfPhoneStored()
+        if (isPhoneCorrect() && !_regUiState.value.isPhoneStored) {
+            val code = createConfirmationCode()
+            _regUiState.update {
+                it.copy(
+                    phoneConfirmation = it.phoneConfirmation.copy(
+                        userInput = code,
+                        code = code,
+                        isRequested = true
+                    )
+                )
+            }
+        }
     }
 
     private fun createConfirmationCode(): String {
@@ -217,23 +406,67 @@ class RegViewModel(private val repository: GroundsRepository) : ViewModel() {
         return code
     }
 
-    fun changeEmail() {
-        userConfirmationCode = ""
-        confirmationCode = ""
+    fun updateEmail() {
         _regUiState.update {
-            it.copy(isConfirmationRequested = false)
+            it.copy(emailConfirmation = Confirmation())
         }
     }
+
+    fun changePhone() {
+        _regUiState.update {
+            it.copy(phoneConfirmation = Confirmation())
+        }
+    }
+
+    fun showPassword(isPasswordShow: Boolean) {
+        _regUiState.update {
+            it.copy(
+                isPasswordShow = isPasswordShow
+            )
+        }
+    }
+
+    fun validatePassword(): Boolean {
+        val isMatch =
+            Pattern.compile("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$")
+                .matcher(_regUiState.value.userRegDto.password).find()
+        if (regUiState.value.isPasswordStrong != isMatch) {
+            _regUiState.update {
+                it.copy(isPasswordStrong = isMatch)
+            }
+        }
+        return isMatch
+    }
+
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application =
                     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val repository = application.container.repository
+                val repository = application.appComponent.getUserRepository()
                 RegViewModel(repository)
             }
         }
     }
+
+    fun onRegCompete() {
+        clearData()
+    }
+
+    private fun clearData() {
+        _regUiState.update {
+            RegUiState()
+        }
+    }
+}
+
+data class Confirmation(
+    val userInput: String = "",
+    private val code: String = "",
+    val isRequested: Boolean = false
+) {
+    fun isValid(): Boolean = isRequested && userInput == code
+    fun isCompete(): Boolean = isRequested && userInput.length == code.length
 }
 

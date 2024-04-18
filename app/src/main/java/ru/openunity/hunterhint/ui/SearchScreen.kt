@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.ui.components.GroundImages
-import ru.openunity.hunterhint.ui.components.Screen
+import ru.openunity.hunterhint.ui.components.ScreenE
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar
 import ru.openunity.hunterhint.ui.theme.uiElements_twoToneStar
 
@@ -66,7 +66,7 @@ fun SearchScreen(
         modifier = modifier,
         color = MaterialTheme.colorScheme.background
     ) {
-        Screen(state = searchUiState.state,
+        ScreenE(state = searchUiState.state,
             retryAction = retryAction,
             composable = {
                 GroundCards(searchUiState.cards, { groundId, isIncrement ->
@@ -99,7 +99,8 @@ fun GroundItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 GroundImages(
-                    images = groundCard.images,
+                    images = groundCard.
+                    images,
                     changeImage = changeImage,
                     numberOfCurrentImage = groundCard.numberOfCurrentImage,
                     modifier = Modifier

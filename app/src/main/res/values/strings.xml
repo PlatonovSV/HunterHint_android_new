@@ -30,7 +30,12 @@
     <string name="last_name">Last name</string>
     <string name="enter_your_name">Enter your name</string>
     <string name="create_account">Create a Hunter Hint Account</string>
+    <string name="authorization">Authorization</string>
+    <string name="authorization_in_progress">Authorization is in progress</string>
     <string name="next">Next</string>
+    <string name="phone_number_already_stored">There is already an account with this phone number</string>
+    <string name="account_not_yet_been_created">An account with this phone number has not yet been created</string>
+    <string name="email_already_stored">There is already an account with this email</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
     <string name="january">January</string>
@@ -65,7 +70,24 @@
     <string name="alreadyHaveAccount">Already have an account</string>
     <string name="enter_your_phone_number">Enter your phone number</string>
     <string name="already_have_account">Already have an account</string>
+    <string name="create_new_account">Create a new account</string>
     <string name="choose_country">Choose a country</string>
     <string name="navigate_up">Navigate up</string>
     <string name="change_email">Сhange email</string>
+    <string name="create_password">Create a strong password</string>
+    <string name="password_desc">Create a strong password with a mix of letters, numbers and symbols</string>
+    <string name="password_must_be">Password must be at least 8 chatacters long.\nAt least one uppercase English letter.\nAt least one lowercase English letter. \nAt least one digit.\nAt least one special character.</string>
+    <string name="password">Password</string>
+    <string name="server_error">Server error</string>
+    <string name="no_internet">There is no internet connection</string>
+    <string name="server_denied">The server denied the request</string>
+    <string name="show_password">Show password</string>
+    <string name="registration_in_progress">Registration in progress</string>
+    <string name="registration_completed_successfully">Registration completed successfully</string>
+    <string name="contin">Continue</string>
+    <string name="cancel">Cancel</string>
+    <string name="change">Change</string>
+    <string name="enter_password">Enter the password</string>
+    <string name="auth">Auth</string>
+    <string name="wrong_password">Wrong password</string>
 </resources>
