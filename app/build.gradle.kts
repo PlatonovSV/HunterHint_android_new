@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
     id("kotlin-kapt")
-    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    id("com.google.devtools.ksp") version "2.0.0-RC1-1.0.20"
 }
 
 android {
