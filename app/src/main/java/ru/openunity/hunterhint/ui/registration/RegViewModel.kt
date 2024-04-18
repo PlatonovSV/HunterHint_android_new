@@ -438,6 +438,15 @@ class RegViewModel(private val repository: UserRepository) : ViewModel() {
         return isMatch
     }
 
+    fun onRegCompete() {
+        clearData()
+    }
+
+    private fun clearData() {
+        _regUiState.update {
+            RegUiState()
+        }
+    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -447,16 +456,6 @@ class RegViewModel(private val repository: UserRepository) : ViewModel() {
                 val repository = application.appComponent.getUserRepository()
                 RegViewModel(repository)
             }
-        }
-    }
-
-    fun onRegCompete() {
-        clearData()
-    }
-
-    private fun clearData() {
-        _regUiState.update {
-            RegUiState()
         }
     }
 }
