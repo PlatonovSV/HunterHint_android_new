@@ -12,8 +12,7 @@ import ru.openunity.hunterhint.models.User
 
 @Dao
 interface UserDao {
-    @Transaction
-    @Query("DELETE from users")
+    @Insert
     suspend fun insert(user: User)
 
     @Update

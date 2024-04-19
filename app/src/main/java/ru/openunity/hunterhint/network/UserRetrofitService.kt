@@ -8,7 +8,7 @@ import ru.openunity.hunterhint.dto.AuthRequestDto
 import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.UserRegDto
 
-interface UserRemoteDataSource {
+interface UserRetrofitService {
     @POST("users/new")
     suspend fun createUser(@Body user: UserRegDto): Long
 

@@ -23,7 +23,6 @@ import ru.openunity.hunterhint.data.UserRepository
 import ru.openunity.hunterhint.dto.UserRegDto
 import ru.openunity.hunterhint.dto.birthMonth
 import ru.openunity.hunterhint.dto.country
-import ru.openunity.hunterhint.network.UserRemoteDataSource
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success

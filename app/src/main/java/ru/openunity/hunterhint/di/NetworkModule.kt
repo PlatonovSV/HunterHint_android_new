@@ -5,9 +5,8 @@ import dagger.Provides
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import ru.openunity.hunterhint.data.UserRepository
 import ru.openunity.hunterhint.network.GroundRemoteDataSource
-import ru.openunity.hunterhint.network.UserRemoteDataSource
+import ru.openunity.hunterhint.network.UserRetrofitService
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -18,12 +17,12 @@ class NetworkModule {
     // @Provides tell Dagger how to create instances of the type that this function
     // Function parameters are the dependencies of this type.
     @Provides
-    fun provideLoginRetrofitService(retrofit: Retrofit): UserRemoteDataSource {
+    fun provideLoginRetrofitService(retrofit: Retrofit): UserRetrofitService {
 
         // Whenever Dagger needs to provide an instance,
         // this code (the one inside the @Provides method) is run.
         return retrofit
-            .create(UserRemoteDataSource::class.java)
+            .create(UserRetrofitService::class.java)
     }
     @Singleton
     @Provides

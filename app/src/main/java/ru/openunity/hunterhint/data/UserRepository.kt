@@ -1,10 +1,11 @@
 package ru.openunity.hunterhint.data
 
-import ru.openunity.hunterhint.network.UserRemoteDataSource
+import ru.openunity.hunterhint.network.UserRetrofitService
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val localDataSource: UserLocalDataSource,
     private val remoteDataSource: UserRemoteDataSource
-) : UserRemoteDataSource by remoteDataSource {
+) : UserRetrofitService by remoteDataSource, UserDao by localDataSource {
+
 }
