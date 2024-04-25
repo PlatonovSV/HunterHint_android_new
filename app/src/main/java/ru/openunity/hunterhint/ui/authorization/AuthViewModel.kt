@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -18,6 +19,8 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.UserRepository
 import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.country
+import ru.openunity.hunterhint.models.User
+import ru.openunity.hunterhint.models.updateWithDto
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success
@@ -61,16 +64,7 @@ class AuthViewModel(private val userRepository: UserRepository) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = userRepository.authorization(dto)
-                if (response.isAuthorizationSuccessful) {
-                    processAuthorizationResponse(response)
-                } else {
-                    _authUiState.update {
-                        it.copy(
-                            state = AppError(R.string.wrong_password, true),
-                            isPasswordGood = false
-                        )
-                    }
-                }
+                processAuthorizationResponse(response)
             } catch (e: IOException) {
                 setErrorState(R.string.no_internet)
             } catch (e: HttpException) {
@@ -79,13 +73,35 @@ class AuthViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
-    private suspend fun processAuthorizationResponse(response: AuthResponseDto) {
-        //сохранить токен в базу данных.
-        //В случе успеха - обновить свойство.
-        //За этим свойством наблиюдают. При его изменении, если true
-        // - навигация в личный кабинет.
-        _authUiState.update {
-            AuthUiState(isAuthSuccess = true)
+    private fun processAuthorizationResponse(response: AuthResponseDto) {
+        if (response.isAuthorizationSuccessful) {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    userRepository.insert(
+                        User(
+                            id = response.userId,
+                            jwt = response.jwt
+                        )
+                    )
+                    val dto = userRepository.getUsersData(response.jwt)
+                    val user = userRepository.getUser().first()
+                    userRepository.update(updateWithDto(user, dto))
+                    _authUiState.update {
+                        AuthUiState(isAuthSuccess = true)
+                    }
+                } catch (e: IOException) {
+                    _authUiState.update { it.copy(state = AppError(R.string.server_error, true)) }
+                } catch (e: HttpException) {
+                    _authUiState.update { it.copy(state = AppError(R.string.no_internet, true)) }
+                }
+            }
+        } else {
+            _authUiState.update {
+                it.copy(
+                    state = AppError(R.string.wrong_password, true),
+                    isPasswordGood = false
+                )
+            }
         }
     }
 

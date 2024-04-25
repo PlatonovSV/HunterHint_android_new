@@ -9,7 +9,7 @@ import ru.openunity.hunterhint.models.User
 /**
  * Database class with a singleton Instance object.
  */
-@Database(entities = [User::class], version = 1, exportSchema = false)
+@Database(entities = [User::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao

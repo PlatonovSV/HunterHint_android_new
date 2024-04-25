@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
-    id("com.google.devtools.ksp") version "2.0.0-RC1-1.0.20"
+    id("com.google.devtools.ksp") version "1.9.23-1.0.20"
 }
 
 android {
@@ -45,7 +45,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.13-dev-k2.0.0-RC1-50f08dfa4b4"
+        kotlinCompilerExtensionVersion = "1.5.12"
     }
     packaging {
         resources {
@@ -86,7 +86,7 @@ dependencies {
 
     // Okhttp3 for the POST requests
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
+    implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
     // Gson to convert raw JSON to pretty JSON
     implementation("com.google.code.gson:gson:2.10.1")
 

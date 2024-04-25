@@ -2,10 +2,12 @@ package ru.openunity.hunterhint.network
 
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
 import ru.openunity.hunterhint.dto.AuthRequestDto
 import ru.openunity.hunterhint.dto.AuthResponseDto
+import ru.openunity.hunterhint.dto.UserDto
 import ru.openunity.hunterhint.dto.UserRegDto
 
 interface UserRetrofitService {
@@ -23,4 +25,7 @@ interface UserRetrofitService {
 
     @POST("users/auth")
     suspend fun authorization(@Body auth: AuthRequestDto): AuthResponseDto
+
+    @GET("users/get")
+    suspend fun getUsersData(@Header("Authorization") token: String): UserDto
 }

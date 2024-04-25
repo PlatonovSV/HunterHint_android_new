@@ -133,6 +133,7 @@ fun TopAppBar(
                 })
         }
         AppScreen.AuthPassword -> {}
+        AppScreen.Personal -> {}
     }
 }
 
@@ -163,6 +164,7 @@ fun AppBottomAppBar(
         AppScreen.AuthPhone -> {}
         AppScreen.AuthPhoneCode -> {}
         AppScreen.AuthPassword -> {}
+        AppScreen.Personal -> {}
     }
 }
 

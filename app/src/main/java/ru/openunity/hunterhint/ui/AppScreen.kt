@@ -26,6 +26,8 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.authorization.AuthViewModel
 import ru.openunity.hunterhint.ui.authorization.PasswordAuthScreen
 import ru.openunity.hunterhint.ui.authorization.PhoneAuthScreen
+import ru.openunity.hunterhint.ui.personal.PersonalAccountScreen
+import ru.openunity.hunterhint.ui.personal.PersonalViewModel
 import ru.openunity.hunterhint.ui.registration.CompletionRegScreen
 import ru.openunity.hunterhint.ui.registration.CountryCodeDialog
 import ru.openunity.hunterhint.ui.registration.DateRegScreen
@@ -50,7 +52,8 @@ enum class AppScreen {
     RegCompletion,
     AuthPhone,
     AuthPhoneCode,
-    AuthPassword
+    AuthPassword,
+    Personal
 }
 
 enum class TestTag {
@@ -68,6 +71,7 @@ fun HunterHintApp(
     groundsPageViewModel: GroundsPageViewModel = viewModel(factory = GroundsPageViewModel.Factory),
     regViewModel: RegViewModel = viewModel(factory = RegViewModel.Factory),
     authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory),
+    personalViewModel: PersonalViewModel = viewModel(factory = PersonalViewModel.Factory),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
@@ -100,13 +104,17 @@ fun HunterHintApp(
         bottomBar = {
             AppBottomAppBar(
                 currentScreen = currentScreen,
-                onClickAccount = { navController.navigate(AppScreen.RegPhone.name) })
+                onClickAccount = {
+                    navController.navigate(AppScreen.RegPhone.name)
+                    ///
+                })
         }
     ) { innerPadding ->
         val searchUiState by searchViewModel.searchUiState.collectAsState()
         val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
         val regUiState by regViewModel.regUiState.collectAsState()
         val authUiState by authViewModel.authUiState.collectAsState()
+        val personalUiState by personalViewModel.uiState.collectAsState()
 
         NavHost(
             navController = navController,
@@ -156,7 +164,9 @@ fun HunterHintApp(
                     requestPhoneConfirmation = regViewModel::requestPhoneConfirmation,
                     onPhoneChanged = regViewModel::changePhone,
                     chooseCountryCode = { navController.navigate(AppScreen.RegPhoneCode.name) },
-                    onAuth = { navController.navigate(AppScreen.AuthPhone.name) },
+                    onAuth = {
+                        navController.popBackStack()
+                        navController.navigate(AppScreen.AuthPhone.name) },
                     regUiState = regUiState,
                     onPhoneUpdate = regViewModel::updatePhone
                 )
@@ -249,7 +259,9 @@ fun HunterHintApp(
                         }
                     },
                     chooseCountryCode = { navController.navigate(AppScreen.AuthPhoneCode.name) },
-                    onRegistration = { navController.navigate(AppScreen.RegPhone.name) },
+                    onRegistration = {
+                        navController.popBackStack()
+                        navController.navigate(AppScreen.RegPhone.name) },
                     uiState = authUiState,
                     onCodeChanged = authViewModel::updatePhoneConfirmationCode,
                     requestPhoneConfirmation = authViewModel::requestPhoneConfirmation,
@@ -266,12 +278,18 @@ fun HunterHintApp(
             composable(route = AppScreen.AuthPassword.name) {
                 if (authUiState.isAuthSuccess) {
                     navController.popBackStack(AppScreen.Search.name, false)
+                    navController.navigate(AppScreen.Personal.name)
                 }
                 PasswordAuthScreen(
                     uiState = authUiState,
                     onPasswordChanged = authViewModel::changePassword,
                     onClickShowPassword = authViewModel::showPassword,
                     onAuth = authViewModel::onClickAuth
+                )
+            }
+            composable(route = AppScreen.Personal.name) {
+                PersonalAccountScreen(uiState = personalUiState,
+                    changeSection = personalViewModel::changeSection
                 )
             }
         }
