@@ -11,10 +11,10 @@ import androidx.navigation.testing.TestNavHostController
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import ru.openunity.hunterhint.ui.HunterHintApp
-import ru.openunity.hunterhint.ui.AppScreen
+import ru.openunity.hunterhint.navigation.HunterHintApp
+import ru.openunity.hunterhint.navigation.AppScreen
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.ui.TestTag
+import ru.openunity.hunterhint.navigation.TestTag
 
 class AppScreenNavigationTest {
     @get:Rule

@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.ui
+package ru.openunity.hunterhint.navigation
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -21,6 +21,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.ui.groundsPage.GroundsPageTitle
+import ru.openunity.hunterhint.ui.search.SearchAppBarTitle
 
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.

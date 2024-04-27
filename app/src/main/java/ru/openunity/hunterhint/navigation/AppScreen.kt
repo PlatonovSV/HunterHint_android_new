@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.ui
+package ru.openunity.hunterhint.navigation
 
 import android.content.Context
 import android.content.Intent
@@ -26,6 +26,8 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.authorization.AuthViewModel
 import ru.openunity.hunterhint.ui.authorization.PasswordAuthScreen
 import ru.openunity.hunterhint.ui.authorization.PhoneAuthScreen
+import ru.openunity.hunterhint.ui.groundsPage.GroundsPage
+import ru.openunity.hunterhint.ui.groundsPage.GroundsPageViewModel
 import ru.openunity.hunterhint.ui.personal.PersonalAccountScreen
 import ru.openunity.hunterhint.ui.personal.PersonalViewModel
 import ru.openunity.hunterhint.ui.registration.CompletionRegScreen
@@ -36,25 +38,9 @@ import ru.openunity.hunterhint.ui.registration.NameRegScreen
 import ru.openunity.hunterhint.ui.registration.PasswordScreen
 import ru.openunity.hunterhint.ui.registration.PhoneRegScreen
 import ru.openunity.hunterhint.ui.registration.RegViewModel
+import ru.openunity.hunterhint.ui.search.SearchScreen
+import ru.openunity.hunterhint.ui.search.SearchViewModel
 
-/**
- * enum values that represent the screens in the app
- */
-enum class AppScreen {
-    Search,
-    Detailed,
-    RegName,
-    RegDate,
-    RegEmail,
-    RegPhone,
-    RegPhoneCode,
-    RegPassword,
-    RegCompletion,
-    AuthPhone,
-    AuthPhoneCode,
-    AuthPassword,
-    Personal
-}
 
 enum class TestTag {
     GroundInfo

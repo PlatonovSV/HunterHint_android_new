@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.ui
+package ru.openunity.hunterhint.ui.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.GroundsCard
+import ru.openunity.hunterhint.navigation.TestTag
 import ru.openunity.hunterhint.ui.components.GroundImages
 import ru.openunity.hunterhint.ui.components.ScreenE
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar

@@ -1,6 +1,8 @@
-package ru.openunity.hunterhint.ui
+package ru.openunity.hunterhint.ui.groundsPage
 
 import ru.openunity.hunterhint.models.Ground
+import ru.openunity.hunterhint.ui.StateE
+import ru.openunity.hunterhint.ui.UiStateE
 
 data class GroundsPageUiState(
     val ground: Ground = Ground(),

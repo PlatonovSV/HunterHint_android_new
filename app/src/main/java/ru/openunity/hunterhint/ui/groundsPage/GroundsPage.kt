@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.ui
+package ru.openunity.hunterhint.ui.groundsPage
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.components.GroundImages
+import ru.openunity.hunterhint.ui.groundsPage.GroundsPageUiState
 
 @Composable
 fun GroundsPage(

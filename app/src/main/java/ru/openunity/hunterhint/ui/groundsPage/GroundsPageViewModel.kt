@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.ui
+package ru.openunity.hunterhint.ui.groundsPage
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.openunity.hunterhint.data.ground.GroundRepository
-import ru.openunity.hunterhint.network.GroundRetrofitService
+import ru.openunity.hunterhint.ui.StateE
 import java.io.IOException
 import javax.inject.Inject
 
