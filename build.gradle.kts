@@ -5,13 +5,20 @@ buildscript {
     extra.apply {
         set("room_version", "2.6.1")
     }
+    /*
+    extra.apply {
+        set("hilt_version", "2.51.1")
+    }
+     */
 }
 plugins {
     id("com.android.application") version "8.3.2" apply false
     id("org.jetbrains.kotlin.android") version "1.9.23" apply false
     id("com.android.library") version "8.3.2" apply false
+    id("com.google.devtools.ksp") version "1.9.23-1.0.20"
+    id("com.google.dagger.hilt.android") version "2.51.1" apply false
 }
 
 tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    delete(project.layout.buildDirectory)
 }

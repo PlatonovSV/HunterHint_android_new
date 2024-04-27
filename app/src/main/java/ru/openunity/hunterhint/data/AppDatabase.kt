@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import ru.openunity.hunterhint.data.user.UserDao
 import ru.openunity.hunterhint.models.User
 
 /**

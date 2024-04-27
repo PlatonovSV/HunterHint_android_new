@@ -8,9 +8,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import dagger.hilt.android.AndroidEntryPoint
 import ru.openunity.hunterhint.ui.HunterHintApp
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

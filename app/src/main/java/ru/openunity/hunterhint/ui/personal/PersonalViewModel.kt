@@ -2,18 +2,17 @@ package ru.openunity.hunterhint.ui.personal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import ru.openunity.hunterhint.data.UserRepository
-import androidx.lifecycle.ViewModelProvider
-import ru.openunity.hunterhint.HunterHintApplication
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.lifecycle.viewmodel.initializer
+import ru.openunity.hunterhint.data.user.UserRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PersonalViewModel(val userRepository: UserRepository) : ViewModel() {
+@HiltViewModel
+class PersonalViewModel @Inject constructor(val userRepository: UserRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(PersonalUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -67,16 +66,4 @@ class PersonalViewModel(val userRepository: UserRepository) : ViewModel() {
         }
     }
 
-
-    companion object {
-        private const val TIMEOUT_MILLIS = 5_000L
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val repository = application.appComponent.getUserRepository()
-                PersonalViewModel(userRepository = repository)
-            }
-        }
-    }
 }

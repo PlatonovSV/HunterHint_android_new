@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.data
+package ru.openunity.hunterhint.data.user
 
 import ru.openunity.hunterhint.network.UserRetrofitService
 import javax.inject.Inject

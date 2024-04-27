@@ -2,26 +2,26 @@ package ru.openunity.hunterhint.ui
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import ru.openunity.hunterhint.HunterHintApplication
-import ru.openunity.hunterhint.network.GroundRemoteDataSource
+import ru.openunity.hunterhint.data.ground.GroundRepository
+import ru.openunity.hunterhint.network.GroundRetrofitService
 import java.io.IOException
+import javax.inject.Inject
 
-class GroundsPageViewModel(private val groundsRepository: GroundRemoteDataSource) : ViewModel() {
+@HiltViewModel
+class GroundsPageViewModel @Inject constructor(private val groundsRepository: GroundRepository) : ViewModel() {
 
     private val _groundsPageUiState = MutableStateFlow(GroundsPageUiState())
     val groundsPageUiState: StateFlow<GroundsPageUiState> = _groundsPageUiState.asStateFlow()
 
-    fun onGroundsCardClick(groundId: Int) {
+    /*fun onGroundsCardClick(groundId: Int) {
         if (_groundsPageUiState.value.ground.id != groundId) {
             getGround(groundId)
         } else {
@@ -31,7 +31,7 @@ class GroundsPageViewModel(private val groundsRepository: GroundRemoteDataSource
                 }
             }
         }
-    }
+    }*/
 
     private fun getGround(groundId: Int) {
         viewModelScope.launch {
@@ -76,14 +76,4 @@ class GroundsPageViewModel(private val groundsRepository: GroundRemoteDataSource
         TODO("Not yet implemented")
     }
 
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val groundsRepository = application.appComponent.getGroundRemoteDataSource()
-                GroundsPageViewModel(groundsRepository = groundsRepository)
-            }
-        }
-    }
 }

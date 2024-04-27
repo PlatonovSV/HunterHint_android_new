@@ -2,10 +2,8 @@ package ru.openunity.hunterhint.ui.authorization
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,9 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
-import ru.openunity.hunterhint.HunterHintApplication
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.data.UserRepository
+import ru.openunity.hunterhint.data.user.UserRepository
 import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.country
 import ru.openunity.hunterhint.models.User
@@ -27,8 +24,10 @@ import ru.openunity.hunterhint.ui.Success
 import ru.openunity.hunterhint.ui.registration.Confirmation
 import ru.openunity.hunterhint.ui.registration.Country
 import java.io.IOException
+import javax.inject.Inject
 
-class AuthViewModel(private val userRepository: UserRepository) : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(private val userRepository: UserRepository) : ViewModel() {
     private val minPasswordLength = 8
 
     private val _authUiState = MutableStateFlow(AuthUiState(isAuthSuccess = true))
@@ -229,14 +228,4 @@ class AuthViewModel(private val userRepository: UserRepository) : ViewModel() {
         return isValid
     }
 
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val repository = application.appComponent.getUserRepository()
-                AuthViewModel(repository)
-            }
-        }
-    }
 }

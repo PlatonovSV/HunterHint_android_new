@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.data
+package ru.openunity.hunterhint.data.user
 
 import androidx.room.Dao
 import androidx.room.Insert

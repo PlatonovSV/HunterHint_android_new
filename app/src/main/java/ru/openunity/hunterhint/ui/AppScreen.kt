@@ -16,7 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -67,11 +67,6 @@ enum class TestTag {
 )
 @Composable
 fun HunterHintApp(
-    searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
-    groundsPageViewModel: GroundsPageViewModel = viewModel(factory = GroundsPageViewModel.Factory),
-    regViewModel: RegViewModel = viewModel(factory = RegViewModel.Factory),
-    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory),
-    personalViewModel: PersonalViewModel = viewModel(factory = PersonalViewModel.Factory),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
@@ -94,10 +89,9 @@ fun HunterHintApp(
                     shareOrder(
                         context = context,
                         subject = context.resources.getString(R.string.app_name),
-                        summary = groundsPageViewModel.groundsPageUiState.value.ground.name
+                        summary = context.resources.getString(R.string.app_name)
                     )
                 },
-                groundsPageViewModel = groundsPageViewModel,
                 modifier = Modifier
             )
         },
@@ -110,18 +104,14 @@ fun HunterHintApp(
                 })
         }
     ) { innerPadding ->
-        val searchUiState by searchViewModel.searchUiState.collectAsState()
-        val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
-        val regUiState by regViewModel.regUiState.collectAsState()
-        val authUiState by authViewModel.authUiState.collectAsState()
-        val personalUiState by personalViewModel.uiState.collectAsState()
-
         NavHost(
             navController = navController,
             startDestination = AppScreen.Search.name,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = AppScreen.Search.name) {
+                val searchViewModel: SearchViewModel = hiltViewModel<SearchViewModel>()
+                val searchUiState by searchViewModel.searchUiState.collectAsState()
                 SearchScreen(
                     retryAction = searchViewModel::getGrounds,
                     searchUiState = searchUiState,
@@ -130,7 +120,6 @@ fun HunterHintApp(
                     },
                     onGroundsCardClick = { groundId: Int ->
                         run {
-                            groundsPageViewModel.onGroundsCardClick(groundId)
                             navController.navigate(AppScreen.Detailed.name)
                         }
                     },
@@ -139,6 +128,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.Detailed.name) {
+                val groundsPageViewModel: GroundsPageViewModel = hiltViewModel()
+                val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
                 screenTitle = groundsPageUiState.ground.name
                 val scrollState = rememberScrollState()
                 GroundsPage(
@@ -154,6 +145,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.RegPhone.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 PhoneRegScreen(
                     onClickNext = {
                         if (regUiState.phoneConfirmation.isValid()) {
@@ -172,12 +165,16 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.RegPhoneCode.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 CountryCodeDialog(onCountryClick = { country ->
                     regViewModel.updateCountry(country)
                     navController.navigateUp()
                 })
             }
             composable(route = AppScreen.RegName.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 NameRegScreen(
                     regUiState = regUiState,
                     onUserNameChanged = { regViewModel.updateUserName(it) },
@@ -191,6 +188,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.RegDate.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 DateRegScreen(
                     onClickNext = {
                         if (regViewModel.checkBirthday() && regViewModel.checkGender()) {
@@ -211,6 +210,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.RegEmail.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 EmailScreen(
                     onClickNext = {
                         if (regUiState.emailConfirmation.isValid()) {
@@ -225,6 +226,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.RegPassword.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 PasswordScreen(
                     regUiState = regUiState,
                     onPasswordChanged = regViewModel::updatePassword,
@@ -238,6 +241,8 @@ fun HunterHintApp(
                     })
             }
             composable(route = AppScreen.RegCompletion.name) {
+                val regViewModel: RegViewModel = hiltViewModel()
+                val regUiState by regViewModel.regUiState.collectAsState()
                 CompletionRegScreen(
                     state = regUiState.state,
                     retryAction = regViewModel::requestRegistration,
@@ -252,6 +257,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.AuthPhone.name) {
+                val authViewModel: AuthViewModel = hiltViewModel()
+                val authUiState by authViewModel.authUiState.collectAsState()
                 PhoneAuthScreen(
                     onClickNext = {
                         if (authViewModel.checkConfirmation()) {
@@ -270,12 +277,16 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.AuthPhoneCode.name) {
+                val authViewModel: AuthViewModel = hiltViewModel()
+                val authUiState by authViewModel.authUiState.collectAsState()
                 CountryCodeDialog(onCountryClick = { country ->
                     authViewModel.updateCountry(country)
                     navController.navigateUp()
                 })
             }
             composable(route = AppScreen.AuthPassword.name) {
+                val authViewModel: AuthViewModel = hiltViewModel()
+                val authUiState by authViewModel.authUiState.collectAsState()
                 if (authUiState.isAuthSuccess) {
                     navController.popBackStack(AppScreen.Search.name, false)
                     navController.navigate(AppScreen.Personal.name)
@@ -288,6 +299,8 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.Personal.name) {
+                val personalViewModel: PersonalViewModel = hiltViewModel()
+                val personalUiState by personalViewModel.uiState.collectAsState()
                 PersonalAccountScreen(uiState = personalUiState,
                     changeSection = personalViewModel::changeSection
                 )

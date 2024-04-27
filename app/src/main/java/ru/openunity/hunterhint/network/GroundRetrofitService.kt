@@ -5,7 +5,7 @@ import retrofit2.http.Path
 import ru.openunity.hunterhint.models.Ground
 import ru.openunity.hunterhint.models.GroundsCard
 
-interface GroundRemoteDataSource {
+interface GroundRetrofitService {
     @GET("preview/{groundIds}")
     suspend fun getListOfGroundsPreview(@Path("groundIds") groundIds: String): List<GroundsCard>
 

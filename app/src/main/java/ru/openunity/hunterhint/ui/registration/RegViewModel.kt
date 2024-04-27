@@ -5,10 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +15,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
-import ru.openunity.hunterhint.HunterHintApplication
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.data.UserRepository
+import ru.openunity.hunterhint.data.user.UserRepository
 import ru.openunity.hunterhint.dto.UserRegDto
 import ru.openunity.hunterhint.dto.birthMonth
 import ru.openunity.hunterhint.dto.country
@@ -28,8 +25,10 @@ import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success
 import java.io.IOException
 import java.util.regex.Pattern
+import javax.inject.Inject
 
-class RegViewModel(private val repository: UserRepository) : ViewModel() {
+@HiltViewModel
+class RegViewModel @Inject constructor(private val repository: UserRepository) : ViewModel() {
 
     private val _regUiState = MutableStateFlow(RegUiState())
     val regUiState: StateFlow<RegUiState> = _regUiState.asStateFlow()
@@ -444,17 +443,6 @@ class RegViewModel(private val repository: UserRepository) : ViewModel() {
     private fun clearData() {
         _regUiState.update {
             RegUiState()
-        }
-    }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val repository = application.appComponent.getUserRepository()
-                RegViewModel(repository)
-            }
         }
     }
 }

@@ -2,10 +2,8 @@ package ru.openunity.hunterhint.ui
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,13 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import ru.openunity.hunterhint.HunterHintApplication
+import ru.openunity.hunterhint.data.ground.GroundRepository
 import ru.openunity.hunterhint.models.GroundsCard
-import ru.openunity.hunterhint.network.GroundRemoteDataSource
 import java.io.IOException
+import javax.inject.Inject
 
 
-class SearchViewModel(private val groundsRepository: GroundRemoteDataSource) : ViewModel() {
+@HiltViewModel
+class SearchViewModel @Inject constructor(private val groundsRepository: GroundRepository) :
+    ViewModel() {
     private val _searchUiState = MutableStateFlow(SearchUiState())
     val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
 
@@ -81,19 +81,5 @@ class SearchViewModel(private val groundsRepository: GroundRemoteDataSource) : V
             groundIds = _searchUiState.value.groundIds,
             state = _searchUiState.value.state
         )
-    }
-
-    /**
-     * Factory for [SearchViewModel] that takes [GroundRemoteDataSource] as a dependency
-     */
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HunterHintApplication)
-                val groundsRepository = application.appComponent.getGroundRemoteDataSource()
-                SearchViewModel(groundsRepository = groundsRepository)
-            }
-        }
     }
 }

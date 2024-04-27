@@ -33,7 +33,6 @@ fun TopAppBar(
     currentScreen: AppScreen,
     navigateUp: () -> Unit,
     onClickSearch: () -> Unit,
-    groundsPageViewModel: GroundsPageViewModel,
     modifier: Modifier = Modifier,
 ) {
     val appBarColors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -71,7 +70,7 @@ fun TopAppBar(
                         )
                     }
                     //Add ground to favorite button
-                    IconButton(onClick = groundsPageViewModel::addToFavorite) {
+                    IconButton(onClick = { }) {
                         Icon(
                             painter = painterResource(id = R.drawable.favorite),
                             contentDescription = stringResource(
