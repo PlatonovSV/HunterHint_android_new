@@ -4,10 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,6 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,57 +34,162 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.navigation.TestTag
+import ru.openunity.hunterhint.ui.components.ErrorScreenE
 import ru.openunity.hunterhint.ui.components.GroundImages
-import ru.openunity.hunterhint.ui.components.ScreenE
+import ru.openunity.hunterhint.ui.groundsPage.DataLoading
+import ru.openunity.hunterhint.ui.groundsPage.EmptyListMessage
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar
 import ru.openunity.hunterhint.ui.theme.uiElements_twoToneStar
 
 @Composable
-fun GroundCards(
-    groundCards: List<GroundsCard>,
-    changeImage: (groundId: Int, isIncrement: Boolean) -> Unit,
-    onClick: (Int) -> Unit
+internal fun SearchRoute(
+    onGroundsCardClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SearchViewModel = hiltViewModel()
 ) {
-    LazyColumn {
-        items(groundCards) {
-            GroundItem(
-                groundCard = it,
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_small)),
-                onClick = onClick,
-                changeImage = { isIncrement: Boolean -> changeImage(it.id, isIncrement) }
-            )
-        }
+    val uiState by viewModel.searchUiState.collectAsState()
+    Surface(
+        modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+    ) {
+        SearchScreen(
+            onGroundsCardClick = onGroundsCardClick,
+            uiState = uiState,
+            viewModel = viewModel,
+            modifier = Modifier
+        )
     }
 }
 
 @Composable
 fun SearchScreen(
-    retryAction: () -> Unit,
-    searchUiState: SearchUiState,
-    changeImage: (Int, Boolean) -> Unit,
     onGroundsCardClick: (Int) -> Unit,
+    uiState: SearchUiState,
+    viewModel: SearchViewModel,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.background
-    ) {
-        ScreenE(state = searchUiState.state,
-            retryAction = retryAction,
-            composable = {
-                GroundCards(searchUiState.cards, { groundId, isIncrement ->
-                    changeImage(
-                        groundId,
-                        isIncrement
-                    )
-                }) { groundId: Int ->
-                    onGroundsCardClick(groundId)
-                }
-            })
+    when (val groundIds = uiState.groundIds) {
+        is IdsLoading -> {
+            DataLoading(
+                messageId = R.string.search_for_hunting_grounds, modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        is IdsError -> {
+            ErrorScreenE(
+                retryAction = viewModel::getGroundIds, modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        is IdsSuccess -> {
+            if (groundIds.ids.isEmpty()) {
+                EmptyListMessage(
+                    messageId = R.string.no_ground_ids, modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                GroundCards(
+                    cards = uiState.cards,
+                    changeImage = viewModel::changeImage,
+                    retryGroundsUpload = viewModel::getGrounds,
+                    onClick = onGroundsCardClick
+                )
+            }
+
+        }
+
+
     }
+}
+
+@Composable
+fun GroundCards(
+    cards: CardsState,
+    changeImage: (groundId: Int, isIncrement: Boolean) -> Unit,
+    onClick: (Int) -> Unit,
+    retryGroundsUpload: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxSize()
+    ) {
+        when (cards) {
+            is CardsLoading -> {
+                items(cards.cards) { card ->
+                    GroundItem(groundCard = card,
+                        changeImage = { isIncrement: Boolean -> changeImage(card.id, isIncrement) },
+                        onClick = { onClick(card.id) })
+                }
+                item {
+                    Card(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        modifier = Modifier
+                            .padding(dimensionResource(id = R.dimen.padding_small))
+                            .fillMaxWidth()
+                            .height(248.dp)
+                    ) {
+                        DataLoading(
+                            messageId = R.string.search_for_hunting_grounds,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+
+            is CardsError -> {
+                items(cards.cards) { card ->
+                    GroundItem(groundCard = card,
+                        changeImage = { isIncrement: Boolean -> changeImage(card.id, isIncrement) },
+                        onClick = { onClick(card.id) })
+                }
+                item {
+                    Card(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        modifier = Modifier
+                            .padding(dimensionResource(id = R.dimen.padding_small))
+                            .fillMaxWidth()
+                            .height(248.dp)
+                    ) {
+                        ErrorScreenE(
+                            retryAction = retryGroundsUpload, modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+
+            is CardsSuccess -> {
+                if (cards.cards.isEmpty()) {
+                    item {
+                        Card(
+                            shape = MaterialTheme.shapes.extraLarge,
+                            modifier = Modifier
+                                .padding(dimensionResource(id = R.dimen.padding_small))
+                                .fillMaxWidth()
+                                .height(248.dp)
+                        ) {
+                            EmptyListMessage(
+                                messageId = R.string.no_ground_ids,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                } else {
+                    items(cards.cards) { card ->
+                        GroundItem(groundCard = card, changeImage = { isIncrement: Boolean ->
+                            changeImage(
+                                card.id, isIncrement
+                            )
+                        }, onClick = { onClick(card.id) })
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -89,7 +199,10 @@ fun GroundItem(
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier) {
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        modifier = modifier.padding(dimensionResource(id = R.dimen.padding_small))
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -97,19 +210,20 @@ fun GroundItem(
         ) {
             GroundName(groundCard = groundCard, onClick, modifier = Modifier)
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(
+                    192.dp
+                )
             ) {
                 GroundImages(
-                    images = groundCard.
-                    images,
+                    images = groundCard.images,
                     changeImage = changeImage,
                     numberOfCurrentImage = groundCard.numberOfCurrentImage,
                     modifier = Modifier
-                        .size(dimensionResource(id = R.dimen.image_size))
                         .padding(dimensionResource(id = R.dimen.padding_small))
+                        .weight(1f)
                         .clip(MaterialTheme.shapes.extraLarge),
                 )
-                GroundInformation(groundCard = groundCard, onClick, modifier = Modifier)
+                GroundInformation(groundCard = groundCard, onClick, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -117,27 +231,22 @@ fun GroundItem(
 
 @Composable
 fun GroundName(groundCard: GroundsCard, onClick: (Int) -> Unit, modifier: Modifier) {
-    Text(
-        text = groundCard.name,
-        style = MaterialTheme.typography.displaySmall,
+    Text(text = groundCard.name,
+        style = MaterialTheme.typography.titleLarge,
         modifier = modifier
             .clickable {
                 onClick(groundCard.id)
             }
             .testTag(TestTag.GroundInfo.name)
             .fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
+        textAlign = TextAlign.Center)
 }
 
 @Composable
 fun GroundInformation(
-    groundCard: GroundsCard,
-    onClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    groundCard: GroundsCard, onClick: (Int) -> Unit, modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier
-        .fillMaxWidth()
         .clickable {
             onClick(groundCard.id)
         }
@@ -146,27 +255,26 @@ fun GroundInformation(
         val bathStatus = if (groundCard.isBath) " ✓" else " ✘"
         Text(
             text = "${groundCard.regionName},\n${groundCard.municipalDistrictName}",
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.titleSmall
         )
         Text(
             text = stringResource(id = R.string.ground_card_square, groundCard.area.toInt()),
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.titleSmall
         )
         Text(
             text = stringResource(id = R.string.ground_card_hotel, hotelStatus),
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.titleSmall
         )
         Text(
             text = stringResource(id = R.string.ground_card_bath, bathStatus),
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.titleSmall
         )
         Text(
             text = stringResource(id = R.string.minimum_price, groundCard.minCost),
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.titleSmall
         )
         GroundRating(
-            rating = groundCard.rating,
-            reviewsQuantity = groundCard.reviewsQuantity
+            rating = groundCard.rating, reviewsQuantity = groundCard.reviewsQuantity
         )
     }
 }
@@ -205,7 +313,7 @@ fun NumberOfReviews(number: Int, modifier: Modifier = Modifier) {
     Text(
         text = stringResource(id = R.string.number_of_reviews, number),
         modifier = modifier,
-        style = MaterialTheme.typography.labelSmall
+        style = MaterialTheme.typography.titleSmall
     )
 }
 
@@ -232,14 +340,13 @@ fun RatingStar(modifier: Modifier = Modifier, isFilled: Boolean = false) {
 /*Sorting And Filters */
 @Composable
 fun SearchAppBarTitle(modifier: Modifier = Modifier) {
-    Row(modifier
-        .clip(shape = RoundedCornerShape(50.dp, 50.dp, 50.dp, 50.dp))
-        .clickable { /*TODO*/ }
-        .padding(6.dp)
-    ) {
+    Row(
+        modifier
+            .clip(shape = RoundedCornerShape(50.dp, 50.dp, 50.dp, 50.dp))
+            .clickable { /*TODO*/ }
+            .padding(6.dp)) {
         Text(
-            text = stringResource(R.string.sort_popular_first),
-            fontSize = 16.sp
+            text = stringResource(R.string.sort_popular_first), fontSize = 16.sp
         )
         Icon(
             imageVector = Icons.Filled.ArrowDropDown,

@@ -2,9 +2,7 @@ package ru.openunity.hunterhint.ui.registration
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -29,8 +29,32 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
+
+@Composable
+internal fun RegEmailRoute(
+    navigateToRegPassword: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: RegViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.regUiState.collectAsState()
+    EmailScreen(
+        onClickNext = {
+            if (uiState.emailConfirmation.isValid()) {
+                navigateToRegPassword()
+            }
+        },
+        onUpdateEmail = viewModel::updateEmail,
+        onCodeChanged = viewModel::updateEmailConfirmationCode,
+        requestEmailConfirmation = viewModel::requestEmailConfirmation,
+        onEmailChanged = viewModel::changeEmail,
+        regUiState = uiState,
+        modifier = modifier
+    )
+
+}
 
 @Composable
 fun EmailScreen(
@@ -150,15 +174,7 @@ fun Confirmation(
         }
         if (confirmation.isCompete()) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            Button(
-                shape = MaterialTheme.shapes.medium, onClick = onClickNext,
-                modifier = Modifier,
-            ) {
-                Text(
-                    text = stringResource(id = R.string.next),
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
+            NextButton(onClickNext = onClickNext, Modifier)
         }
     }
 }

@@ -82,7 +82,7 @@ fun PersonalAccountScreen(
             }
 
             PersonalSections.SETTINGS -> {
-                SettingsScreen(uiState,onClickLogOut = {})
+                SettingsScreen(uiState, onClickLogOut = {})
             }
         }
     }
@@ -128,9 +128,11 @@ fun PersonalMenu(
 
 @Composable
 fun HorizontalMenuElement(
-    isActive: Boolean, @StringRes sectionNameId: Int,
+    isActive: Boolean,
+    @StringRes sectionNameId: Int,
     changeSection: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isWrong: Boolean = false
 ) {
     val hexagon = remember {
         RoundedPolygon(
@@ -153,20 +155,34 @@ fun HorizontalMenuElement(
             style = MaterialTheme.typography.titleLarge,
             color = if (isActive) MaterialTheme.colorScheme.secondary else Color.Unspecified
         )
-        if (isActive) {
-            Box(
-                modifier = Modifier
-                    .clip(clip)
-                    .background(MaterialTheme.colorScheme.secondary)
-                    .size(24.dp)
-            ) {}
+        when {
+            isActive -> {
+                Box(
+                    modifier = Modifier
+                        .clip(clip)
+                        .background(MaterialTheme.colorScheme.secondary)
+                        .size(24.dp)
+                ) {}
+            }
+            isWrong -> {
+                Box(
+                    modifier = Modifier
+                        .clip(clip)
+                        .background(MaterialTheme.colorScheme.error)
+                        .size(18.dp)
+                ) {}
+            }
         }
     }
 }
 
 
 @Composable
-fun SettingsScreen(uiState: PersonalUiState,onClickLogOut: () -> Unit, modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    uiState: PersonalUiState,
+    onClickLogOut: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier.fillMaxSize()) {
         Text(text = uiState.user.toString())
         Spacer(modifier = Modifier.weight(1f))

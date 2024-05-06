@@ -1,4 +1,4 @@
-package ru.openunity.hunterhint.models
+package ru.openunity.hunterhint.models.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

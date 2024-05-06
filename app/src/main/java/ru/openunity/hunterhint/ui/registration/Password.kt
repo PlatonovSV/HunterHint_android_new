@@ -15,6 +15,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,9 +28,33 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.navigation.AppScreen
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 
+@Composable
+internal fun RegPasswordRoute(
+    popBackStack: () -> Unit,
+    navigateToRegCompletion: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: RegViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.regUiState.collectAsState()
+    PasswordScreen(
+        regUiState = uiState,
+        onPasswordChanged = viewModel::updatePassword,
+        onClickShowPassword = viewModel::showPassword,
+        onClickNext = {
+            if (viewModel.validatePassword()) {
+                viewModel.requestRegistration()
+                popBackStack()
+                navigateToRegCompletion()
+            }
+        },
+        modifier = modifier
+    )
+}
 
 @Composable
 fun PasswordScreen(
@@ -55,7 +81,9 @@ fun PasswordScreen(
             value = password,
             singleLine = true,
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -101,8 +129,7 @@ fun CheckBoxAndLabel(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(
-            checked = selected,
-            onCheckedChange = onClick
+            checked = selected, onCheckedChange = onClick
         )
         Text(text = stringResource(id = label))
     }

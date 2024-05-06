@@ -2,17 +2,11 @@ package ru.openunity.hunterhint.navigation
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,30 +20,31 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.authorization.AuthViewModel
 import ru.openunity.hunterhint.ui.authorization.PasswordAuthScreen
 import ru.openunity.hunterhint.ui.authorization.PhoneAuthScreen
-import ru.openunity.hunterhint.ui.groundsPage.GroundsPage
-import ru.openunity.hunterhint.ui.groundsPage.GroundsPageViewModel
+import ru.openunity.hunterhint.ui.booking.navigation.bookingScreen
+import ru.openunity.hunterhint.ui.groundsPage.navigation.groundsPageScreen
 import ru.openunity.hunterhint.ui.personal.PersonalAccountScreen
 import ru.openunity.hunterhint.ui.personal.PersonalViewModel
-import ru.openunity.hunterhint.ui.registration.CompletionRegScreen
 import ru.openunity.hunterhint.ui.registration.CountryCodeDialog
-import ru.openunity.hunterhint.ui.registration.DateRegScreen
-import ru.openunity.hunterhint.ui.registration.EmailScreen
-import ru.openunity.hunterhint.ui.registration.NameRegScreen
-import ru.openunity.hunterhint.ui.registration.PasswordScreen
-import ru.openunity.hunterhint.ui.registration.PhoneRegScreen
-import ru.openunity.hunterhint.ui.registration.RegViewModel
-import ru.openunity.hunterhint.ui.search.SearchScreen
-import ru.openunity.hunterhint.ui.search.SearchViewModel
+import ru.openunity.hunterhint.ui.registration.navigation.regCompletionScreen
+import ru.openunity.hunterhint.ui.registration.navigation.regDateScreen
+import ru.openunity.hunterhint.ui.registration.navigation.regEmailScreen
+import ru.openunity.hunterhint.ui.registration.navigation.regNameScreen
+import ru.openunity.hunterhint.ui.registration.navigation.regPassword
+import ru.openunity.hunterhint.ui.registration.navigation.regPhoneCodeScreen
+import ru.openunity.hunterhint.ui.registration.navigation.regPhoneScreen
+import ru.openunity.hunterhint.ui.search.navigation.searchScreen
 
 
 enum class TestTag {
     GroundInfo
 }
 
+enum class NavBundleKeys {
+    GROUND_ID
+}
 
 @Preview(
-    showBackground = true,
-    showSystemUi = true
+    showBackground = true, showSystemUi = true
 )
 @Composable
 fun HunterHintApp(
@@ -57,191 +52,80 @@ fun HunterHintApp(
 ) {
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
-    // Get the name of the current screen
-    var screenTitle by remember { mutableStateOf("HunterHint") }
 
     val currentScreen = AppScreen.valueOf(
-        backStackEntry?.destination?.route ?: AppScreen.Search.name
+        backStackEntry?.destination?.route?.substringBefore('/') ?: AppScreen.Search.name
     )
 
-    Scaffold(
-        topBar = {
-            val context = LocalContext.current
-            TopAppBar(
-                canNavigateBack = navController.previousBackStackEntry != null,
-                currentScreen = currentScreen,
-                navigateUp = { navController.navigateUp() },
-                onClickSearch = {
-                    shareOrder(
-                        context = context,
-                        subject = context.resources.getString(R.string.app_name),
-                        summary = context.resources.getString(R.string.app_name)
-                    )
-                },
-                modifier = Modifier
-            )
-        },
-        bottomBar = {
-            AppBottomAppBar(
-                currentScreen = currentScreen,
-                onClickAccount = {
-                    navController.navigate(AppScreen.RegPhone.name)
-                    ///
-                })
-        }
-    ) { innerPadding ->
+    Scaffold(topBar = {
+        val context = LocalContext.current
+        TopAppBar(
+            currentScreen = currentScreen,
+            navigateUp = { navController.navigateUp() },
+            onClickSearch = {
+                shareOrder(
+                    context = context,
+                    subject = context.resources.getString(R.string.app_name),
+                    summary = context.resources.getString(R.string.app_name)
+                )
+            },
+            modifier = Modifier
+        )
+    }, bottomBar = {
+        AppBottomAppBar(currentScreen = currentScreen, navController = navController)
+    }) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = AppScreen.Search.name,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(route = AppScreen.Search.name) {
-                val searchViewModel: SearchViewModel = hiltViewModel<SearchViewModel>()
-                val searchUiState by searchViewModel.searchUiState.collectAsState()
-                SearchScreen(
-                    retryAction = searchViewModel::getGrounds,
-                    searchUiState = searchUiState,
-                    changeImage = { groundId: Int, isIncrement: Boolean ->
-                        searchViewModel.changeImage(groundId, isIncrement)
-                    },
-                    onGroundsCardClick = { groundId: Int ->
-                        run {
-                            navController.navigate(AppScreen.Detailed.name)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                )
-            }
-            composable(route = AppScreen.Detailed.name) {
-                val groundsPageViewModel: GroundsPageViewModel = hiltViewModel()
-                val groundsPageUiState by groundsPageViewModel.groundsPageUiState.collectAsState()
-                screenTitle = groundsPageUiState.ground.name
-                val scrollState = rememberScrollState()
-                GroundsPage(
-                    changeImage = { isIncrement: Boolean ->
-                        groundsPageViewModel.changeImage(
-                            isIncrement
-                        )
-                    },
-                    groundsPageUiState = groundsPageUiState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(state = scrollState)
-                )
-            }
-            composable(route = AppScreen.RegPhone.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                PhoneRegScreen(
-                    onClickNext = {
-                        if (regUiState.phoneConfirmation.isValid()) {
-                            navController.navigate(AppScreen.RegName.name)
-                        }
-                    },
-                    onCodeChanged = regViewModel::updatePhoneConfirmationCode,
-                    requestPhoneConfirmation = regViewModel::requestPhoneConfirmation,
-                    onPhoneChanged = regViewModel::changePhone,
-                    chooseCountryCode = { navController.navigate(AppScreen.RegPhoneCode.name) },
-                    onAuth = {
-                        navController.popBackStack()
-                        navController.navigate(AppScreen.AuthPhone.name) },
-                    regUiState = regUiState,
-                    onPhoneUpdate = regViewModel::updatePhone
-                )
-            }
-            composable(route = AppScreen.RegPhoneCode.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                CountryCodeDialog(onCountryClick = { country ->
-                    regViewModel.updateCountry(country)
+            searchScreen(onGroundsCardClick = {
+                navController.navigate("${AppScreen.GroundsPage.name}/${it}")
+            })
+            groundsPageScreen(
+                groundsId = backStackEntry?.arguments?.getString("groundsId")?.toIntOrNull() ?: -1,
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateToBooking = { offersId ->
+                    navController.navigate("${AppScreen.Booking.name}/${offersId}")
+                },
+                navigateUp = {
                     navController.navigateUp()
-                })
-            }
-            composable(route = AppScreen.RegName.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                NameRegScreen(
-                    regUiState = regUiState,
-                    onUserNameChanged = { regViewModel.updateUserName(it) },
-                    onClickNext = {
-                        if (regViewModel.isNameCorrect()) {
-                            navController.navigate(AppScreen.RegDate.name)
-                        }
-                    },
-                    onLastNameChanged = { regViewModel.updateUserLastName(it) },
-                    modifier = Modifier
-                )
-            }
-            composable(route = AppScreen.RegDate.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                DateRegScreen(
-                    onClickNext = {
-                        if (regViewModel.checkBirthday() && regViewModel.checkGender()) {
-                            navController.navigate(AppScreen.RegEmail.name)
-                        }
-                    },
-                    onMonthClick = regViewModel::showMonthDialog,
-                    onGenderClick = regViewModel::showGenderDialog,
-                    onUserDayChanged = regViewModel::updateUserDay,
-                    onUserYearChanged = regViewModel::updateUserYear,
-                    userMonth = regViewModel.userMonth,
-                    regUiState = regUiState,
-                    onMonthSelect = regViewModel::updateUserMonth,
-                    onGenderSelect = regViewModel::updateUserGender,
-                    onDismissRequest = regViewModel::dismissDialogs,
-                    userGender = regViewModel.userGender,
-                    modifier = Modifier
-                )
-            }
-            composable(route = AppScreen.RegEmail.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                EmailScreen(
-                    onClickNext = {
-                        if (regUiState.emailConfirmation.isValid()) {
-                            navController.navigate(AppScreen.RegPassword.name)
-                        }
-                    },
-                    onUpdateEmail = regViewModel::updateEmail,
-                    onCodeChanged = regViewModel::updateEmailConfirmationCode,
-                    requestEmailConfirmation = regViewModel::requestEmailConfirmation,
-                    onEmailChanged = regViewModel::changeEmail,
-                    regUiState = regUiState
-                )
-            }
-            composable(route = AppScreen.RegPassword.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                PasswordScreen(
-                    regUiState = regUiState,
-                    onPasswordChanged = regViewModel::updatePassword,
-                    onClickShowPassword = regViewModel::showPassword,
-                    onClickNext = {
-                        if (regViewModel.validatePassword()) {
-                            regViewModel.requestRegistration()
-                            navController.popBackStack(AppScreen.Search.name, false)
-                            navController.navigate(AppScreen.RegCompletion.name)
-                        }
-                    })
-            }
-            composable(route = AppScreen.RegCompletion.name) {
-                val regViewModel: RegViewModel = hiltViewModel()
-                val regUiState by regViewModel.regUiState.collectAsState()
-                CompletionRegScreen(
-                    state = regUiState.state,
-                    retryAction = regViewModel::requestRegistration,
-                    cancelAction = {
-                        regViewModel.onRegCompete()
-                        navController.navigate(AppScreen.Search.name)
-                    },
-                    onComplete = {
-                        regViewModel.onRegCompete()
-                        navController.navigate(AppScreen.Search.name)
-                    }
-                )
-            }
+                },
+                navController = navController
+            )
+            bookingScreen(
+                offersId = backStackEntry?.arguments?.getString("offersId")?.toLongOrNull() ?: -1L
+            )
+            regPhoneScreen(navigateToAuth = {
+                navController.popBackStack()
+                navController.navigate(AppScreen.AuthPhone.name)
+            }, navigateToRegName = {
+                navController.navigate(AppScreen.RegName.name)
+            }, navigateToRegPhoneCode = {
+                navController.navigate(AppScreen.RegPhoneCode.name)
+            })
+            regPhoneCodeScreen(navigateUp = {
+                navController.navigateUp()
+            })
+            regNameScreen(navigateToRegDate = {
+                navController.navigate(AppScreen.RegDate.name)
+            })
+            regDateScreen(navigateToRegEmail = {
+                navController.navigate(AppScreen.RegEmail.name)
+            })
+            regEmailScreen(navigateToRegPassword = {
+                navController.navigate(AppScreen.RegPassword.name)
+            })
+            regPassword(popBackStack = {
+                navController.popBackStack(AppScreen.Search.name, false)
+            }, navigateToRegCompletion = {
+                navController.navigate(AppScreen.RegCompletion.name)
+            })
+            regCompletionScreen(navigateOnCancel = {
+                navController.navigate(AppScreen.Search.name)
+            }, navigateOnComplete = {
+                navController.navigate(AppScreen.Search.name)
+            })
             composable(route = AppScreen.AuthPhone.name) {
                 val authViewModel: AuthViewModel = hiltViewModel()
                 val authUiState by authViewModel.authUiState.collectAsState()
@@ -254,7 +138,8 @@ fun HunterHintApp(
                     chooseCountryCode = { navController.navigate(AppScreen.AuthPhoneCode.name) },
                     onRegistration = {
                         navController.popBackStack()
-                        navController.navigate(AppScreen.RegPhone.name) },
+                        navController.navigate(AppScreen.RegPhone.name)
+                    },
                     uiState = authUiState,
                     onCodeChanged = authViewModel::updatePhoneConfirmationCode,
                     requestPhoneConfirmation = authViewModel::requestPhoneConfirmation,
@@ -264,7 +149,6 @@ fun HunterHintApp(
             }
             composable(route = AppScreen.AuthPhoneCode.name) {
                 val authViewModel: AuthViewModel = hiltViewModel()
-                val authUiState by authViewModel.authUiState.collectAsState()
                 CountryCodeDialog(onCountryClick = { country ->
                     authViewModel.updateCountry(country)
                     navController.navigateUp()
@@ -287,8 +171,8 @@ fun HunterHintApp(
             composable(route = AppScreen.Personal.name) {
                 val personalViewModel: PersonalViewModel = hiltViewModel()
                 val personalUiState by personalViewModel.uiState.collectAsState()
-                PersonalAccountScreen(uiState = personalUiState,
-                    changeSection = personalViewModel::changeSection
+                PersonalAccountScreen(
+                    uiState = personalUiState, changeSection = personalViewModel::changeSection
                 )
             }
         }
@@ -305,8 +189,7 @@ private fun shareOrder(context: Context, subject: String, summary: String) {
     }
     context.startActivity(
         Intent.createChooser(
-            intent,
-            context.getString(R.string.app_name)
+            intent, context.getString(R.string.app_name)
         )
     )
 }

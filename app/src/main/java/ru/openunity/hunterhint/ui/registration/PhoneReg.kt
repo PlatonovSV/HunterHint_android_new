@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.dto.country
 import ru.openunity.hunterhint.ui.Loading
@@ -35,6 +36,36 @@ import ru.openunity.hunterhint.ui.State
 import ru.openunity.hunterhint.ui.Success
 import ru.openunity.hunterhint.ui.authorization.PhoneAndCountry
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
+
+@Composable
+internal fun RegPhoneRoute(
+    navigateToRegName: () -> Unit,
+    navigateToRegPhoneCode: () -> Unit,
+    navigateToAuth: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: RegViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.regUiState.collectAsState()
+    PhoneRegScreen(
+        onClickNext = {
+            if (uiState.phoneConfirmation.isValid()) {
+                navigateToRegName()
+            }
+        },
+        onCodeChanged = viewModel::updatePhoneConfirmationCode,
+        requestPhoneConfirmation = viewModel::requestPhoneConfirmation,
+        onPhoneChanged = viewModel::changePhone,
+        chooseCountryCode = { navigateToRegPhoneCode() },
+        onAuth = {
+            navigateToAuth()
+        },
+        regUiState = uiState,
+        onPhoneUpdate = viewModel::updatePhone,
+        modifier = modifier
+    )
+}
+
+
 
 @Composable
 fun PhoneRegScreen(
@@ -88,26 +119,6 @@ fun PhoneRegScreen(
             Text(
                 text = stringResource(id = R.string.already_have_account),
                 style = MaterialTheme.typography.labelLarge
-            )
-        }
-    }
-}
-
-@Composable
-fun CountryCodeDialog(
-    onCountryClick: (Country) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier
-            .fillMaxSize()
-    ) {
-        val countries = Country.entries
-        val sortedCountries = countries.sortedBy { country -> country.countryName }
-        items(sortedCountries) { country ->
-            CountryCodeItem(
-                country = country,
-                onCountryClick = onCountryClick
             )
         }
     }

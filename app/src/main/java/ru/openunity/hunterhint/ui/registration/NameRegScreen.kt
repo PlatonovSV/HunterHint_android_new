@@ -24,6 +24,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +41,29 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 
+@Composable
+internal fun RegNameRoute(
+    navigateToRegDate: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: RegViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.regUiState.collectAsState()
+    NameRegScreen(
+        regUiState = uiState,
+        onUserNameChanged = { viewModel.updateUserName(it) },
+        onClickNext = {
+            if (viewModel.isNameCorrect()) {
+                navigateToRegDate()
+            }
+        },
+        onLastNameChanged = { viewModel.updateUserLastName(it) },
+        modifier = modifier
+    )
+}
 
 @Composable
 fun NameRegScreen(
@@ -150,7 +172,7 @@ fun NextButton(onClickNext: () -> Unit, modifier: Modifier = Modifier) {
         onClick = onClickNext, modifier = modifier, shape = MaterialTheme.shapes.small
     ) {
         Text(
-            text = stringResource(R.string.next), style = MaterialTheme.typography.labelMedium
+            text = stringResource(R.string.next), style = MaterialTheme.typography.labelLarge
         )
     }
 }

@@ -6,24 +6,29 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import ru.openunity.hunterhint.data.user.UserRepository
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.openunity.hunterhint.models.database.User
 import javax.inject.Inject
 
 @HiltViewModel
-class PersonalViewModel @Inject constructor(val userRepository: UserRepository) : ViewModel() {
+class PersonalViewModel @Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(PersonalUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
         try {
             viewModelScope.launch {
-                val user = userRepository.getUser().first()
-                _uiState.update {
-                    it.copy(
-                        user = user
-                    )
+                userRepository.getUser().collect {
+                    it.apply {
+                        _uiState.update { uiState ->
+                            uiState.copy(
+                                user = if (it == null)  User() else it
+                            )
+                        }
+                    }
+
                 }
             }
         } catch (e: NoSuchElementException) {

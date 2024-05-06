@@ -16,8 +16,8 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.user.UserRepository
 import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.country
-import ru.openunity.hunterhint.models.User
-import ru.openunity.hunterhint.models.updateWithDto
+import ru.openunity.hunterhint.models.database.User
+import ru.openunity.hunterhint.models.database.updateWithDto
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success

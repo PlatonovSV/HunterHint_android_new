@@ -1,7 +1,7 @@
 package ru.openunity.hunterhint.models
 
 data class Ground(
-    val id: Int = 0,
+    val id: Int = -1,
     val name: String = "",
     val companyName: String = "",
     val area: Double = .0,

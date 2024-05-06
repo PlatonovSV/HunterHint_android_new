@@ -46,7 +46,7 @@ class AppScreenNavigationTest {
     @Test
     fun hunterHintNavHost_clickFirstGround_navigateToDetailedPage() {
         clickFirstGroundOnSearchScreen()
-        navController.assertCurrentRouteName(AppScreen.Detailed.name)
+        navController.assertCurrentRouteName(AppScreen.GroundsPage.name)
     }
 
     private fun performNavigateUp() {

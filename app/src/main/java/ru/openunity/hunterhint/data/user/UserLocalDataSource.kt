@@ -1,7 +1,7 @@
 package ru.openunity.hunterhint.data.user
 
 
-import ru.openunity.hunterhint.models.User
+import ru.openunity.hunterhint.models.database.User
 import javax.inject.Inject
 
 class UserLocalDataSource @Inject constructor(private val userDao: UserDao) : UserDao by userDao {

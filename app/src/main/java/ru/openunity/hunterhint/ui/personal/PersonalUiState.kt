@@ -1,6 +1,6 @@
 package ru.openunity.hunterhint.ui.personal
 
-import ru.openunity.hunterhint.models.User
+import ru.openunity.hunterhint.models.database.User
 
 data class PersonalUiState(
     val user: User = User(),
