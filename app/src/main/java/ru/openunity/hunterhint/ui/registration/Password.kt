@@ -1,9 +1,9 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -30,7 +31,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.navigation.AppScreen
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 
 @Composable
@@ -38,7 +38,9 @@ internal fun RegPasswordRoute(
     popBackStack: () -> Unit,
     navigateToRegCompletion: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel()
+    viewModel: RegViewModel = hiltViewModel(
+        LocalContext.current as ComponentActivity
+    )
 ) {
     val uiState by viewModel.regUiState.collectAsState()
     PasswordScreen(
@@ -112,9 +114,7 @@ fun PasswordScreen(
         if (!regUiState.isPasswordStrong) {
             WrongInput(textResourceId = R.string.password_must_be)
         }
-        // Spacer to fill up the available space
-        Spacer(modifier = Modifier.weight(1f))
-        NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.End))
+        NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
 

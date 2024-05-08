@@ -5,18 +5,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-internal fun RegPhoneCodeRoute(
-    navigateUp: () -> Unit,
+internal fun PhoneCodeRoute(
+    navigateUp: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel()
 ) {
     CountryCodeDialog(
         onCountryClick = { country ->
-            viewModel.updateCountry(country)
-            navigateUp()
+            navigateUp(country.cCode)
         },
         modifier = modifier
     )

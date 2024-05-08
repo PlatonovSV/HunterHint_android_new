@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import ru.openunity.hunterhint.navigation.AppScreen
+import ru.openunity.hunterhint.ui.registration.Country
 
 @Composable
 fun HuntBottomAppBar(
@@ -28,7 +29,7 @@ fun HuntBottomAppBar(
                     contentDescription = "Localized description",
                 )
             }
-            IconButton(onClick = { navController.navigate(AppScreen.RegPhone.name) }) {
+            IconButton(onClick = { navController.navigate("${AppScreen.RegPhone.name}/${Country.RUSSIAN_FEDERATION.cCode}") }) {
                 Icon(
                     Icons.Filled.AccountCircle,
                     contentDescription = "Localized description",

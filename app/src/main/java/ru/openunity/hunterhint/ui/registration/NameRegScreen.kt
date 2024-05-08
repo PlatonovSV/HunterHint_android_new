@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +34,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -49,11 +51,10 @@ import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 internal fun RegNameRoute(
     navigateToRegDate: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel(),
+    viewModel: RegViewModel = hiltViewModel(LocalContext.current as ComponentActivity),
 ) {
     val uiState by viewModel.regUiState.collectAsState()
-    NameRegScreen(
-        regUiState = uiState,
+    NameRegScreen(regUiState = uiState,
         onUserNameChanged = { viewModel.updateUserName(it) },
         onClickNext = {
             if (viewModel.isNameCorrect()) {
@@ -138,22 +139,21 @@ fun NameRegScreen(
             WrongInput(textResourceId = R.string.lastname_incorrect)
         }
         // Spacer to fill up the available space
-        Spacer(modifier = Modifier.weight(1f))
-        NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.End))
+        Spacer(modifier = Modifier.height(14.dp))
+        NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
 
 
 @Composable
 fun WrongInput(
-    textResourceId: Int,
-    modifier: Modifier = Modifier
+    textResourceId: Int, modifier: Modifier = Modifier
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(0.dp, 6.dp)) {
         Icon(
             imageVector = Icons.Default.Info,
-            contentDescription = null, modifier = Modifier
-                .size(12.dp),
+            contentDescription = null,
+            modifier = Modifier.size(12.dp),
             tint = MaterialTheme.colorScheme.error
         )
         Spacer(modifier = Modifier.width(6.dp))
@@ -167,12 +167,14 @@ fun WrongInput(
 }
 
 @Composable
-fun NextButton(onClickNext: () -> Unit, modifier: Modifier = Modifier) {
+fun NextButton(
+    onClickNext: () -> Unit, modifier: Modifier = Modifier, stringResourceId: Int = R.string.next
+) {
     Button(
         onClick = onClickNext, modifier = modifier, shape = MaterialTheme.shapes.small
     ) {
         Text(
-            text = stringResource(R.string.next), style = MaterialTheme.typography.labelLarge
+            text = stringResource(stringResourceId), style = MaterialTheme.typography.labelLarge
         )
     }
 }
@@ -189,15 +191,11 @@ fun GenderDialog(
             )
         ) {
             GenderDialogItem(
-                onClick = onSelect,
-                gender = Gender.MALE,
-                modifier = Modifier
+                onClick = onSelect, gender = Gender.MALE, modifier = Modifier
             )
             HorizontalDivider()
             GenderDialogItem(
-                onClick = onSelect,
-                gender = Gender.FEMALE,
-                modifier = Modifier
+                onClick = onSelect, gender = Gender.FEMALE, modifier = Modifier
             )
         }
     }
@@ -225,9 +223,7 @@ fun MonthDialog(
         ) {
             Month.entries.forEach {
                 MonthDialogItem(
-                    onClick = onSelect,
-                    it,
-                    modifier = Modifier
+                    onClick = onSelect, it, modifier = Modifier
                 )
                 if (it != Month.DECEMBER) {
                     HorizontalDivider()
@@ -258,9 +254,7 @@ fun HorizontalDivider(
 @Composable
 fun MonthDialogItem(onClick: (Month) -> Unit, month: Month, modifier: Modifier = Modifier) {
     DialogItem(
-        stringResourceId = month.stringResourceId,
-        onClick = { onClick(month) },
-        modifier = modifier
+        stringResourceId = month.stringResourceId, onClick = { onClick(month) }, modifier = modifier
     )
 }
 

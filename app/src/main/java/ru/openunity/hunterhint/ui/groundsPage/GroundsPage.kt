@@ -55,8 +55,6 @@ import androidx.navigation.NavController
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.Ground
 import ru.openunity.hunterhint.models.HuntingOffer
-import ru.openunity.hunterhint.models.guidingStringRes
-import ru.openunity.hunterhint.models.typeStringRes
 import ru.openunity.hunterhint.ui.bottomAppBar.HuntBottomAppBar
 import ru.openunity.hunterhint.ui.components.ErrorScreenE
 import ru.openunity.hunterhint.ui.components.GroundImages

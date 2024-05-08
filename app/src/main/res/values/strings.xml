@@ -229,4 +229,5 @@
     <string name="uploading">Uploading</string>
     <string name="search_for_hunting_grounds">Search for hunting grounds</string>
     <string name="no_ground_ids">Hunting tours with the specified parameters were not found</string>
+    <string name="hunting_method">Hunting method</string>
 </resources>

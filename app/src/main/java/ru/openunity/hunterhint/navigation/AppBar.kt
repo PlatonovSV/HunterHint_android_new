@@ -51,49 +51,42 @@ fun TopAppBar(
             )
         }
 
-        AppScreen.GroundsPage -> {}
-        AppScreen.RegName -> {}
-        AppScreen.RegDate -> {}
-        AppScreen.RegEmail -> {}
-        AppScreen.RegPhone -> {}
         AppScreen.RegPhoneCode -> {
             TopAppBar(title = { Text(text = stringResource(id = R.string.choose_country)) },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.navigate_up)
-                        )
-                    }
+                    NavigateUpButton(navigateUp)
                 })
         }
-        AppScreen.RegPassword -> {}
+
         AppScreen.RegCompletion -> {
             TopAppBar(title = { Text(text = stringResource(R.string.registration_in_progress)) },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.navigate_up)
-                        )
-                    }
+                    NavigateUpButton(navigateUp)
                 })
         }
-        AppScreen.AuthPhone -> {}
+
         AppScreen.AuthPhoneCode -> {
             TopAppBar(title = { Text(text = stringResource(id = R.string.choose_country)) },
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.navigate_up)
-                        )
-                    }
+                    NavigateUpButton(navigateUp)
                 })
         }
-        AppScreen.AuthPassword -> {}
-        AppScreen.Personal -> {}
-        AppScreen.Booking -> {}
+
+        else -> {
+
+        }
+    }
+}
+
+@Composable
+fun NavigateUpButton(
+    onClick: () -> Unit, modifier: Modifier = Modifier
+) {
+    IconButton(onClick = onClick, modifier) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.navigate_up)
+        )
     }
 }
 
@@ -108,20 +101,12 @@ fun AppBottomAppBar(
             HuntBottomAppBar(navController, modifier = modifier)
         }
 
-        AppScreen.GroundsPage -> {}
-        AppScreen.RegName -> {}
-        AppScreen.RegDate -> {}
-        AppScreen.RegEmail -> {}
-        AppScreen.RegPhone -> {}
-        AppScreen.RegPhoneCode -> {}
-        AppScreen.RegPassword -> {}
         AppScreen.RegCompletion -> {
             HuntBottomAppBar(navController, modifier = modifier)
         }
-        AppScreen.AuthPhone -> {}
-        AppScreen.AuthPhoneCode -> {}
-        AppScreen.AuthPassword -> {}
-        AppScreen.Personal -> {}
-        AppScreen.Booking -> {}
+
+        else -> {
+
+        }
     }
 }

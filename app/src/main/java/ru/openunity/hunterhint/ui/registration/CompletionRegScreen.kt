@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,7 +27,7 @@ internal fun RegCompletionRoute(
     navigateOnCancel: () -> Unit,
     navigateOnComplete: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel()
+    viewModel: RegViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
     val uiState by viewModel.regUiState.collectAsState()
     CompletionRegScreen(state = uiState.state,

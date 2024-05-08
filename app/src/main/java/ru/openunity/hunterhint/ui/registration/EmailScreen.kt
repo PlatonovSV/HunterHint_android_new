@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -37,7 +39,7 @@ import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 internal fun RegEmailRoute(
     navigateToRegPassword: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel(),
+    viewModel: RegViewModel = hiltViewModel(LocalContext.current as ComponentActivity),
 ) {
     val uiState by viewModel.regUiState.collectAsState()
     EmailScreen(
@@ -96,13 +98,13 @@ fun EmailScreen(
             },
             isError = regUiState.isEmailCorrect,
             keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Done
+                keyboardType = KeyboardType.Email, imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(onDone = { requestEmailConfirmation() })
         )
         VerificationIndicator(
-            state = regUiState.state, isValid = !regUiState.isEmailStored,
+            state = regUiState.state,
+            isValid = !regUiState.isEmailStored,
             whenNotValid = R.string.phone_number_already_stored
         )
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
@@ -131,15 +133,17 @@ fun Confirmation(
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         if (!confirmation.isRequested) {
-            ConfirmationButton(
-                label = R.string.confirm,
-                action = requestEmailConfirmation,
+            NextButton(
+                onClickNext = requestEmailConfirmation,
+                stringResourceId = R.string.confirm,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+
         } else {
-            ConfirmationButton(
-                label = R.string.change,
-                action = onUpdateEmail,
-                Modifier.align(Alignment.CenterHorizontally)
+            NextButton(
+                onClickNext = onUpdateEmail,
+                stringResourceId = R.string.change,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
@@ -149,8 +153,7 @@ fun Confirmation(
                 value = confirmation.userInput,
                 singleLine = true,
                 shape = MaterialTheme.shapes.small,
-                modifier = Modifier
-                    .width(110.dp),
+                modifier = Modifier.width(110.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -166,15 +169,16 @@ fun Confirmation(
                 },
                 isError = confirmation.isValid(),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = { onClickNext() })
             )
         }
         if (confirmation.isCompete()) {
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            NextButton(onClickNext = onClickNext, Modifier)
+            Spacer(modifier = Modifier.height(14.dp))
+            NextButton(
+                onClickNext = onClickNext, modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
@@ -182,13 +186,10 @@ fun Confirmation(
 @Composable
 fun ConfirmationButton(@StringRes label: Int, action: () -> Unit, modifier: Modifier = Modifier) {
     Button(
-        onClick = action,
-        modifier = modifier,
-        shape = MaterialTheme.shapes.small
+        onClick = action, modifier = modifier, shape = MaterialTheme.shapes.small
     ) {
         Text(
-            text = stringResource(label),
-            style = MaterialTheme.typography.labelMedium
+            text = stringResource(label), style = MaterialTheme.typography.labelMedium
         )
     }
 }

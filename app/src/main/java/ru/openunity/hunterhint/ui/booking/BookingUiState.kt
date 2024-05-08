@@ -15,15 +15,20 @@ data class BookingUiState(
     val isShowStartError: Boolean = false,
     val isShowFinalError: Boolean = false,
     val offer: OfferState = OfferLoading,
-    val offerId: Long = -1L
+    val offerId: Long = -1L,
+    val huntingMethodId: Int = -1
 ) {
+
     val isDateWrong: Boolean
         get() = !(startDay.isActual && finalDay.date.isAfter(startDay.date))
+
+    val isMethodNotSelected: Boolean
+        get() = huntingMethodId == -1
 }
 
 enum class BookingSections(@StringRes val sectionNameId: Int) {
     DATE(R.string.date),
-    HUNTER_RESOURCE(R.string.hunter_resource)
+    HUNTING_METHODS(R.string.hunting_method)
 }
 
 data class UserDate(

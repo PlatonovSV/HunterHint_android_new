@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -42,7 +44,7 @@ import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 internal fun RegDateRoute(
     navigateToRegEmail: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel()
+    viewModel: RegViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
     val uiState by viewModel.regUiState.collectAsState()
     DateRegScreen(
@@ -138,7 +140,6 @@ fun DateRegScreen(
         }
 
         // Spacer to fill up the available space
-        Spacer(modifier = Modifier.weight(1f))
         when {
             regUiState.isMonthDialogShow -> {
                 MonthDialog(onDismissRequest = onDismissRequest, onSelect = onMonthSelect)
@@ -149,7 +150,8 @@ fun DateRegScreen(
             }
 
             else -> {
-                NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.End))
+                Spacer(modifier = Modifier.height(14.dp))
+                NextButton(onClickNext = onClickNext, modifier = Modifier.align(Alignment.CenterHorizontally))
             }
         }
 

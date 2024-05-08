@@ -10,6 +10,7 @@ data class GroundsPageUiState(
     val offers: OffersState = OffersLoading,
     val offersParams: FindOffersParams = FindOffersParams(),
     val numberOfCurrentImage: Int = 0,
+    val isAuthorized: Boolean = false,
     override val state: StateE = StateE.Loading
 ) : UiStateE(
     state

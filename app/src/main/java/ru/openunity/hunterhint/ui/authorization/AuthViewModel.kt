@@ -30,7 +30,7 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(private val userRepository: UserRepository) : ViewModel() {
     private val minPasswordLength = 8
 
-    private val _authUiState = MutableStateFlow(AuthUiState(isAuthSuccess = true))
+    private val _authUiState = MutableStateFlow(AuthUiState())
     val authUiState = _authUiState.asStateFlow()
 
     fun updatePhoneConfirmationCode(userInput: String) {
@@ -83,10 +83,10 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
                         )
                     )
                     val dto = userRepository.getUsersData(response.jwt)
-                    val user = userRepository.getUser().first()
+                    val user = userRepository.getUser().first()!!
                     userRepository.update(updateWithDto(user, dto))
                     _authUiState.update {
-                        AuthUiState(isAuthSuccess = true)
+                        AuthUiState(state = Success(result = true))
                     }
                 } catch (e: IOException) {
                     _authUiState.update { it.copy(state = AppError(R.string.server_error, true)) }

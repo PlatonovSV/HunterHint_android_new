@@ -153,6 +153,14 @@ class BookingViewModel @Inject constructor(
         }
     }
 
+    fun selectMethod(methodsId: Int) {
+        _uiState.update {
+            it.copy(
+                huntingMethodId = methodsId
+            )
+        }
+    }
+
 
 }
 

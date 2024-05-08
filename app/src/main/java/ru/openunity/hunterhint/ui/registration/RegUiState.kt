@@ -26,3 +26,4 @@ data class RegUiState(
     val phoneConfirmation: Confirmation = Confirmation(),
     val emailConfirmation: Confirmation = Confirmation()
 )
+

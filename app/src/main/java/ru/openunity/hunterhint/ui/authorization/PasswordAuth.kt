@@ -2,31 +2,32 @@ package ru.openunity.hunterhint.ui.authorization
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.ui.Loading
+import ru.openunity.hunterhint.ui.groundsPage.DataLoading
 import ru.openunity.hunterhint.ui.registration.CheckBoxAndLabel
+import ru.openunity.hunterhint.ui.registration.NextButton
 import ru.openunity.hunterhint.ui.registration.PageDescription
 
 
@@ -55,7 +56,9 @@ fun PasswordAuthScreen(
             value = password,
             singleLine = true,
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -81,15 +84,20 @@ fun PasswordAuthScreen(
             selected = uiState.isPasswordShow,
             onClick = onClickShowPassword
         )
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-        Button(
-            shape = MaterialTheme.shapes.medium, onClick = onAuth,
-            modifier = Modifier,
-        ) {
-            Text(
-                text = stringResource(id = R.string.auth),
-                style = MaterialTheme.typography.labelLarge
+        val state = uiState.state
+        if (state is Loading) {
+            DataLoading(
+                messageId = R.string.authorization,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
             )
         }
+
+        NextButton(
+            onClickNext = onAuth,
+            stringResourceId = R.string.auth,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
     }
 }

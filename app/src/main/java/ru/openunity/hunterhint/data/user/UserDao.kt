@@ -21,5 +21,5 @@ interface UserDao {
 
     //В таблице users одновременно может быть не более 1-й строки
     @Query("SELECT * from users LIMIT 1")
-    fun getUser(): Flow<User>
+    fun getUser(): Flow<User?>
 }

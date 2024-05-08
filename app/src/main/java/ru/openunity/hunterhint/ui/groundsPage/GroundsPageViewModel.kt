@@ -14,17 +14,32 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.ground.GroundRepository
 import ru.openunity.hunterhint.data.offer.FindOffersParams
 import ru.openunity.hunterhint.data.offer.OfferRepository
+import ru.openunity.hunterhint.data.user.UserRepository
 import ru.openunity.hunterhint.ui.StateE
 import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class GroundsPageViewModel @Inject constructor(
+    private val userRepository: UserRepository,
     private val groundsRepository: GroundRepository,
     private val offerRepository: OfferRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(GroundsPageUiState())
+    private var _uiState: MutableStateFlow<GroundsPageUiState> = MutableStateFlow(GroundsPageUiState())
+
+    init {
+        viewModelScope.launch {
+            userRepository.isAuthorized.collect {isAuthorized ->
+                _uiState.update {
+                    it.copy(
+                        isAuthorized = isAuthorized
+                    )
+                }
+            }
+        }
+    }
+
     val uiState: StateFlow<GroundsPageUiState> = _uiState.asStateFlow()
 
     fun onGroundsCardClick(groundId: Int) {
@@ -108,11 +123,6 @@ class GroundsPageViewModel @Inject constructor(
             )
         }
     }
-
-    /*
-
-   получение оферов - get c jgwbjyfkmysvb gfhfvtnhfv
-     */
 
     fun addToFavorite() {
         TODO("Not yet implemented")

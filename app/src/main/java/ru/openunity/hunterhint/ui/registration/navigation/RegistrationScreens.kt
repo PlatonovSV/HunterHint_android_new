@@ -3,21 +3,23 @@ package ru.openunity.hunterhint.ui.registration.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import ru.openunity.hunterhint.navigation.AppScreen
+import ru.openunity.hunterhint.ui.registration.PhoneCodeRoute
 import ru.openunity.hunterhint.ui.registration.RegCompletionRoute
 import ru.openunity.hunterhint.ui.registration.RegDateRoute
 import ru.openunity.hunterhint.ui.registration.RegEmailRoute
 import ru.openunity.hunterhint.ui.registration.RegNameRoute
 import ru.openunity.hunterhint.ui.registration.RegPasswordRoute
-import ru.openunity.hunterhint.ui.registration.RegPhoneCodeRoute
 import ru.openunity.hunterhint.ui.registration.RegPhoneRoute
 
 fun NavGraphBuilder.regPhoneScreen(
+    countryId: Int,
     navigateToRegName: () -> Unit,
     navigateToRegPhoneCode: () -> Unit,
     navigateToAuth: () -> Unit
 ) {
-    composable(route = AppScreen.RegPhone.name) {
+    composable(route = AppScreen.RegPhone.route) {
         RegPhoneRoute(
+            countryId,
             navigateToRegName,
             navigateToRegPhoneCode,
             navigateToAuth
@@ -27,10 +29,10 @@ fun NavGraphBuilder.regPhoneScreen(
 }
 
 fun NavGraphBuilder.regPhoneCodeScreen(
-    navigateUp: () -> Unit
+    navigateUp: (Int) -> Unit
 ) {
-    composable(route = AppScreen.RegPhoneCode.name) {
-        RegPhoneCodeRoute(
+    composable(route = AppScreen.RegPhoneCode.route) {
+        PhoneCodeRoute(
             navigateUp = navigateUp
         )
     }
@@ -39,7 +41,7 @@ fun NavGraphBuilder.regPhoneCodeScreen(
 fun NavGraphBuilder.regNameScreen(
     navigateToRegDate: () -> Unit
 ) {
-    composable(route = AppScreen.RegName.name) {
+    composable(route = AppScreen.RegName.route) {
         RegNameRoute(
             navigateToRegDate
         )

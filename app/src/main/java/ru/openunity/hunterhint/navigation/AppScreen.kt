@@ -2,6 +2,7 @@ package ru.openunity.hunterhint.navigation
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -17,14 +18,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.dto.getCountryByCode
+import ru.openunity.hunterhint.ui.Success
 import ru.openunity.hunterhint.ui.authorization.AuthViewModel
 import ru.openunity.hunterhint.ui.authorization.PasswordAuthScreen
 import ru.openunity.hunterhint.ui.authorization.PhoneAuthScreen
+import ru.openunity.hunterhint.ui.authorization.navigation.authPhoneCodeScreen
 import ru.openunity.hunterhint.ui.booking.navigation.bookingScreen
 import ru.openunity.hunterhint.ui.groundsPage.navigation.groundsPageScreen
 import ru.openunity.hunterhint.ui.personal.PersonalAccountScreen
 import ru.openunity.hunterhint.ui.personal.PersonalViewModel
-import ru.openunity.hunterhint.ui.registration.CountryCodeDialog
+import ru.openunity.hunterhint.ui.registration.Country
 import ru.openunity.hunterhint.ui.registration.navigation.regCompletionScreen
 import ru.openunity.hunterhint.ui.registration.navigation.regDateScreen
 import ru.openunity.hunterhint.ui.registration.navigation.regEmailScreen
@@ -37,10 +41,6 @@ import ru.openunity.hunterhint.ui.search.navigation.searchScreen
 
 enum class TestTag {
     GroundInfo
-}
-
-enum class NavBundleKeys {
-    GROUND_ID
 }
 
 @Preview(
@@ -94,18 +94,24 @@ fun HunterHintApp(
                 navController = navController
             )
             bookingScreen(
+                navigateUp = {
+                    navController.navigateUp()
+                },
                 offersId = backStackEntry?.arguments?.getString("offersId")?.toLongOrNull() ?: -1L
             )
             regPhoneScreen(navigateToAuth = {
                 navController.popBackStack()
-                navController.navigate(AppScreen.AuthPhone.name)
+                navController.navigate("${AppScreen.AuthPhone.name}/${Country.RUSSIAN_FEDERATION.cCode}")
             }, navigateToRegName = {
                 navController.navigate(AppScreen.RegName.name)
             }, navigateToRegPhoneCode = {
-                navController.navigate(AppScreen.RegPhoneCode.name)
-            })
-            regPhoneCodeScreen(navigateUp = {
-                navController.navigateUp()
+                navController.navigate(AppScreen.RegPhoneCode.route)
+            },
+                countryId = backStackEntry?.arguments?.getString("countryId")?.toIntOrNull() ?: Country.RUSSIAN_FEDERATION.cCode)
+            regPhoneCodeScreen(navigateUp = { countryId ->
+                navController.popBackStack()
+                navController.popBackStack()
+                navController.navigate("${AppScreen.RegPhone}/$countryId")
             })
             regNameScreen(navigateToRegDate = {
                 navController.navigate(AppScreen.RegDate.name)
@@ -126,8 +132,10 @@ fun HunterHintApp(
             }, navigateOnComplete = {
                 navController.navigate(AppScreen.Search.name)
             })
-            composable(route = AppScreen.AuthPhone.name) {
-                val authViewModel: AuthViewModel = hiltViewModel()
+            composable(route = AppScreen.AuthPhone.route) {
+                val authViewModel: AuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+                val countryId = backStackEntry?.arguments?.getString("countryId")?.toIntOrNull() ?: Country.RUSSIAN_FEDERATION.cCode
+                authViewModel.updateCountry(getCountryByCode(countryId))
                 val authUiState by authViewModel.authUiState.collectAsState()
                 PhoneAuthScreen(
                     onClickNext = {
@@ -138,7 +146,7 @@ fun HunterHintApp(
                     chooseCountryCode = { navController.navigate(AppScreen.AuthPhoneCode.name) },
                     onRegistration = {
                         navController.popBackStack()
-                        navController.navigate(AppScreen.RegPhone.name)
+                        navController.navigate("${AppScreen.RegPhone.name}/${Country.RUSSIAN_FEDERATION.cCode}")
                     },
                     uiState = authUiState,
                     onCodeChanged = authViewModel::updatePhoneConfirmationCode,
@@ -147,17 +155,16 @@ fun HunterHintApp(
                     onPhoneUpdate = authViewModel::updatePhone
                 )
             }
-            composable(route = AppScreen.AuthPhoneCode.name) {
-                val authViewModel: AuthViewModel = hiltViewModel()
-                CountryCodeDialog(onCountryClick = { country ->
-                    authViewModel.updateCountry(country)
-                    navController.navigateUp()
-                })
-            }
+            authPhoneCodeScreen(navigateUp = { countryId ->
+                navController.popBackStack()
+                navController.popBackStack()
+                navController.navigate("${AppScreen.AuthPhone}/$countryId")
+            })
             composable(route = AppScreen.AuthPassword.name) {
-                val authViewModel: AuthViewModel = hiltViewModel()
+                val authViewModel: AuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
                 val authUiState by authViewModel.authUiState.collectAsState()
-                if (authUiState.isAuthSuccess) {
+                val state = authUiState.state
+                if (state is Success && state.result) {
                     navController.popBackStack(AppScreen.Search.name, false)
                     navController.navigate(AppScreen.Personal.name)
                 }

@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.registration
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.dto.country
+import ru.openunity.hunterhint.dto.getCountryByCode
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.State
 import ru.openunity.hunterhint.ui.Success
@@ -39,12 +42,14 @@ import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 
 @Composable
 internal fun RegPhoneRoute(
+    countryId: Int,
     navigateToRegName: () -> Unit,
     navigateToRegPhoneCode: () -> Unit,
     navigateToAuth: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RegViewModel = hiltViewModel()
+    viewModel: RegViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
+    viewModel.updateCountry(getCountryByCode(countryId))
     val uiState by viewModel.regUiState.collectAsState()
     PhoneRegScreen(
         onClickNext = {
@@ -166,13 +171,13 @@ fun PageDescription(pageName: String, pageDesc: String, modifier: Modifier = Mod
         Text(
             text = pageName,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.displaySmall
+            style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = pageDesc,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(20.dp))
