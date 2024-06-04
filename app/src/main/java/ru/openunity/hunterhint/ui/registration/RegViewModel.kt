@@ -7,28 +7,41 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.user.UserRepository
-import ru.openunity.hunterhint.dto.UserRegDto
+import ru.openunity.hunterhint.dto.AuthRequestDto
+import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.birthMonth
 import ru.openunity.hunterhint.dto.country
+import ru.openunity.hunterhint.dto.getCountryByCode
+import ru.openunity.hunterhint.models.database.User
+import ru.openunity.hunterhint.models.database.updateWithDto
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success
+import ru.openunity.hunterhint.ui.components.ComponentError
+import ru.openunity.hunterhint.ui.components.ComponentLoading
+import ru.openunity.hunterhint.ui.components.ComponentState
+import ru.openunity.hunterhint.ui.components.ComponentSuccess
 import java.io.IOException
 import java.util.regex.Pattern
 import javax.inject.Inject
 
 @HiltViewModel
-class RegViewModel @Inject constructor(private val repository: UserRepository) : ViewModel() {
+class RegViewModel @Inject constructor(
+    private val repository: UserRepository, private val userRepository: UserRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegUiState())
     val regUiState: StateFlow<RegUiState> = _uiState.asStateFlow()
@@ -42,38 +55,75 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
 
     fun requestRegistration() {
         viewModelScope.launch(context = Dispatchers.IO) {
-            _uiState.update { it.copy(state = Loading(R.string.loading)) }
-
+            _uiState.update { it.copy(regState = ComponentLoading) }
+            val userRegDto = _uiState.value.userRegDto
             try {
-                val userId = repository.createUser(_uiState.value.userRegDto)
+                val userId = repository.createUser(userRegDto)
                 _uiState.update {
-                    when (userId) {
-                        -2L -> {
-                            it.copy(
-                                state = AppError(R.string.server_error, true),
-                            )
-                        }
+                    it.copy(
+                        regState = when (userId) {
+                            -2L -> ComponentError(R.string.server_error)
+                            -1L -> ComponentError(R.string.server_error)
+                            else -> {
+                                auth()
+                                ComponentLoading
+                            }
 
-                        -1L -> {
-                            it.copy(
-                                state = AppError(R.string.server_denied, false),
-                            )
                         }
-
-                        else -> {
-                            it.copy(
-                                state = Success(R.string.registration_completed_successfully),
-                                userRegDto = UserRegDto()
-                            )
-                        }
-                    }
+                    )
                 }
             } catch (e: IOException) {
-                Log.e("IOException", e.toString())
-                _uiState.update { it.copy(state = AppError(R.string.server_error, true)) }
+                _uiState.update { it.copy(regState = ComponentError(R.string.server_error)) }
             } catch (e: HttpException) {
-                Log.e("HttpException", e.message())
-                _uiState.update { it.copy(state = AppError(R.string.no_internet, true)) }
+                _uiState.update { it.copy(regState = ComponentError(R.string.server_error)) }
+            }
+        }
+    }
+
+
+    fun auth() {
+        val userRegDto = _uiState.value.userRegDto
+        val dto = AuthRequestDto(
+            userRegDto.countryCode, userRegDto.phoneNumber, userRegDto.password
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = try {
+                val response = userRepository.authorization(dto)
+                processAuthorizationResponse(response).await()
+            } catch (e: IOException) {
+                ComponentError(R.string.server_error)
+            } catch (e: HttpException) {
+                ComponentError(R.string.no_internet)
+            }
+            _uiState.update {
+                it.copy(
+                    regState = result
+                )
+            }
+        }
+    }
+
+    private fun processAuthorizationResponse(response: AuthResponseDto): Deferred<ComponentState> {
+        return viewModelScope.async(Dispatchers.IO) {
+            if (response.isAuthorizationSuccessful) {
+                try {
+                    userRepository.insert(
+                        User(
+                            id = response.userId, jwt = response.jwt
+                        )
+                    )
+                    val dto = userRepository.getUsersData(response.jwt)
+                    val user = userRepository.getUser().first()!!
+                    userRepository.update(updateWithDto(user, dto))
+                    clearData()
+                    ComponentSuccess
+                } catch (e: IOException) {
+                    ComponentError(R.string.server_error)
+                } catch (e: HttpException) {
+                    ComponentError(R.string.no_internet)
+                }
+            } else {
+                ComponentError()
             }
         }
     }
@@ -82,8 +132,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
         runBlocking {
             _uiState.update {
                 it.copy(
-                    isPhoneStored = true,
-                    state = Loading(R.string.loading)
+                    isPhoneStored = true, state = Loading(R.string.loading)
                 )
             }
 
@@ -92,8 +141,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
                 val isStored = repository.isPhoneStored(dto.phoneNumber, dto.countryCode)
                 _uiState.update {
                     it.copy(
-                        state = Success(R.string.empty),
-                        isPhoneStored = isStored
+                        state = Success(R.string.empty), isPhoneStored = isStored
                     )
                 }
             } catch (e: IOException) {
@@ -114,8 +162,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
         runBlocking {
             _uiState.update {
                 it.copy(
-                    isEmailStored = true,
-                    state = Loading(R.string.loading)
+                    isEmailStored = true, state = Loading(R.string.loading)
                 )
             }
 
@@ -124,8 +171,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
                 val isStored = repository.isEmailStored(dto.email)
                 _uiState.update {
                     it.copy(
-                        state = Success(R.string.empty),
-                        isEmailStored = isStored
+                        state = Success(R.string.empty), isEmailStored = isStored
                     )
                 }
             } catch (e: IOException) {
@@ -144,14 +190,10 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
 
     fun updatePhone(userInput: String) {
         val numberLength = _uiState.value.userRegDto.country.numberFormat.count { it == 'X' }
-        if (numberLength == 0 || numberLength >= userInput.length || userInput.length <=
-            _uiState.value.userRegDto.phoneNumber.length
-        ) {
+        if (numberLength == 0 || numberLength >= userInput.length || userInput.length <= _uiState.value.userRegDto.phoneNumber.length) {
             _uiState.update {
                 it.copy(
-                    isPhoneStored = false,
-                    isPhoneWrong = false,
-                    userRegDto = it.userRegDto.copy(
+                    isPhoneStored = false, isPhoneWrong = false, userRegDto = it.userRegDto.copy(
                         phoneNumber = userInput
                     )
                 )
@@ -162,8 +204,8 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
     private fun isPhoneCorrect(): Boolean {
         val userInputLength = _uiState.value.userRegDto.phoneNumber.length
         val numberLength = _uiState.value.userRegDto.country.numberFormat.count { it == 'X' }
-        val isWrong = (numberLength == 0 && userInputLength <= 3) ||
-                (numberLength != userInputLength)
+        val isWrong =
+            (numberLength == 0 && userInputLength <= 3) || (numberLength != userInputLength)
         _uiState.update {
             it.copy(
                 isPhoneWrong = isWrong,
@@ -176,29 +218,30 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
     fun updateUserName(userInput: String) {
         _uiState.update {
             it.copy(
-                isNameCorrect = true,
-                userRegDto = it.userRegDto.copy(
+                isNameCorrect = true, userRegDto = it.userRegDto.copy(
                     name = userInput
                 )
             )
         }
     }
 
-    fun updateCountry(country: Country) {
-        _uiState.update {
-            it.copy(
-                userRegDto = it.userRegDto.copy(
-                    countryCode = country.cCode
+    fun updateCountry(countryCode: Int) {
+        if (countryCode >= 0) {
+            _uiState.update {
+                it.copy(
+                    userRegDto = it.userRegDto.copy(
+                        countryCode = getCountryByCode(countryCode).cCode
+                    )
                 )
-            )
+            }
         }
+
     }
 
     fun updateUserLastName(userInput: String) {
         _uiState.update {
             it.copy(
-                isLastNameCorrect = true,
-                userRegDto = it.userRegDto.copy(
+                isLastNameCorrect = true, userRegDto = it.userRegDto.copy(
                     lastName = userInput
                 )
             )
@@ -258,8 +301,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
     fun changeEmail(userInput: String) {
         _uiState.update {
             it.copy(
-                isEmailCorrect = true,
-                userRegDto = it.userRegDto.copy(
+                isEmailCorrect = true, userRegDto = it.userRegDto.copy(
                     email = userInput
                 )
             )
@@ -332,8 +374,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
         val day = _uiState.value.userRegDto.birthDay
         val year = _uiState.value.userRegDto.birthYear
         val month = _uiState.value.userRegDto.birthMonth
-        val complete =
-            userMonth in Month.entries.map { it.stringResourceId }
+        val complete = userMonth in Month.entries.map { it.stringResourceId }
         val correct = if (complete) {
             day in 1..month.days && year > 1900
         } else {
@@ -369,9 +410,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
             _uiState.update {
                 it.copy(
                     emailConfirmation = it.emailConfirmation.copy(
-                        userInput = code,
-                        code = code,
-                        isRequested = true
+                        userInput = code, code = code, isRequested = true
                     )
                 )
             }
@@ -385,9 +424,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
             _uiState.update {
                 it.copy(
                     phoneConfirmation = it.phoneConfirmation.copy(
-                        userInput = code,
-                        code = code,
-                        isRequested = true
+                        userInput = code, code = code, isRequested = true
                     )
                 )
             }
@@ -436,10 +473,6 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
         return isMatch
     }
 
-    fun onRegCompete() {
-        clearData()
-    }
-
     private fun clearData() {
         _uiState.update {
             RegUiState()
@@ -448,9 +481,7 @@ class RegViewModel @Inject constructor(private val repository: UserRepository) :
 }
 
 data class Confirmation(
-    val userInput: String = "",
-    private val code: String = "",
-    val isRequested: Boolean = false
+    val userInput: String = "", private val code: String = "", val isRequested: Boolean = false
 ) {
     fun isValid(): Boolean = isRequested && userInput == code
     fun isCompete(): Boolean = isRequested && userInput.length == code.length

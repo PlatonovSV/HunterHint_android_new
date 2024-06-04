@@ -25,7 +25,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.Loading
-import ru.openunity.hunterhint.ui.groundsPage.DataLoading
+import ru.openunity.hunterhint.ui.components.DataLoading
 import ru.openunity.hunterhint.ui.registration.CheckBoxAndLabel
 import ru.openunity.hunterhint.ui.registration.NextButton
 import ru.openunity.hunterhint.ui.registration.PageDescription

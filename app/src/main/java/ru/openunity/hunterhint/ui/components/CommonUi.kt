@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,7 +39,6 @@ import ru.openunity.hunterhint.models.Photo
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.State
-import ru.openunity.hunterhint.ui.StateE
 import ru.openunity.hunterhint.ui.Success
 
 
@@ -211,24 +211,6 @@ fun NavigationDots(numberOfImage: Int, quantity: Int, modifier: Modifier = Modif
 }
 
 @Composable
-fun ScreenE(
-    state: StateE,
-    retryAction: () -> Unit,
-    composable: @Composable () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        when (state) {
-            StateE.Loading -> LoadingScreenE(Modifier.fillMaxSize())
-            StateE.Success -> composable()
-            StateE.Error -> ErrorScreenE(retryAction, Modifier.fillMaxSize())
-        }
-    }
-}
-
-@Composable
 fun Screen(
     state: State,
     retryAction: () -> Unit,
@@ -247,23 +229,16 @@ fun Screen(
     }
 }
 
-/**
- * The home screen displaying the loading message.
- */
-@Composable
-fun LoadingScreenE(modifier: Modifier = Modifier) {
-    Image(
-        modifier = modifier.size(200.dp),
-        painter = painterResource(R.drawable.loading_img),
-        contentDescription = stringResource(R.string.loading)
-    )
-}
 
 /**
  * The home screen displaying error message with re-attempt button.
  */
 @Composable
-fun ErrorScreenE(retryAction: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreenE(
+    retryAction: () -> Unit, modifier: Modifier = Modifier,
+    @StringRes messageResId: Int = R.string.loading_failed,
+    @StringRes retryResId: Int = R.string.retry,
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -272,9 +247,9 @@ fun ErrorScreenE(retryAction: () -> Unit, modifier: Modifier = Modifier) {
         Image(
             painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
         )
-        Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
+        Text(text = stringResource(messageResId), modifier = Modifier.padding(16.dp))
         Button(onClick = retryAction) {
-            Text(stringResource(R.string.retry))
+            Text(stringResource(retryResId))
         }
     }
 }
@@ -289,7 +264,12 @@ fun LoadingScreen(state: Loading, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ErrorScreen(state: AppError, retryAction: () -> Unit,cancelAction: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreen(
+    state: AppError,
+    retryAction: () -> Unit,
+    cancelAction: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -307,6 +287,44 @@ fun ErrorScreen(state: AppError, retryAction: () -> Unit,cancelAction: () -> Uni
         }
         Button(onClick = cancelAction) {
             Text(stringResource(R.string.cancel))
+        }
+    }
+}
+
+@Composable
+fun ComponentScreen(
+    @StringRes loadingStrResId: Int,
+    waitContent: @Composable (Modifier) -> Unit,
+    successContent: @Composable (Modifier) -> Unit,
+    retryOnErrorAction: () -> Unit,
+    state: ComponentState,
+    modifier: Modifier = Modifier,
+    @StringRes messageResId: Int = R.string.loading_failed,
+    @StringRes retryResId: Int = R.string.retry,
+    loadingMessage: String? = null
+) {
+    when (state) {
+        is ComponentWait -> {
+            waitContent(modifier)
+        }
+
+        is ComponentLoading -> {
+            DataLoading(
+                messageId = loadingStrResId, modifier = modifier, loadingMessage = loadingMessage
+            )
+        }
+
+        is ComponentSuccess -> {
+            successContent(modifier)
+        }
+
+        is ComponentError -> {
+            ErrorScreenE(
+                retryAction = retryOnErrorAction,
+                messageResId = messageResId,
+                retryResId = retryResId,
+                modifier = modifier
+            )
         }
     }
 }

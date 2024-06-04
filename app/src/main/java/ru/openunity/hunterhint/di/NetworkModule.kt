@@ -9,13 +9,12 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import ru.openunity.hunterhint.network.BookingRetrofitService
+import ru.openunity.hunterhint.network.CommentRetrofitService
 import ru.openunity.hunterhint.network.GroundRetrofitService
 import ru.openunity.hunterhint.network.OfferRetrofitService
 import ru.openunity.hunterhint.network.UserRetrofitService
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -36,6 +35,13 @@ object NetworkModule {
 
     @Singleton
     @Provides
+    fun provideBookingRetrofitService(retrofit: Retrofit): BookingRetrofitService {
+        return retrofit
+            .create(BookingRetrofitService::class.java)
+    }
+
+    @Singleton
+    @Provides
     fun provideGroundRetrofitService(retrofit: Retrofit): GroundRetrofitService {
         return retrofit
             .create(GroundRetrofitService::class.java)
@@ -46,6 +52,13 @@ object NetworkModule {
     fun provideOfferRetrofitService(retrofit: Retrofit): OfferRetrofitService {
         return retrofit
             .create(OfferRetrofitService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideCommentRetrofitService(retrofit: Retrofit): CommentRetrofitService {
+        return retrofit
+            .create(CommentRetrofitService::class.java)
     }
 
     @Singleton

@@ -1,7 +1,9 @@
 package ru.openunity.hunterhint.ui.booking
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -44,15 +47,16 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.HuntingOffer
 import ru.openunity.hunterhint.navigation.NavigateUpButton
+import ru.openunity.hunterhint.ui.components.DataLoading
+import ru.openunity.hunterhint.ui.components.EmptyListMessage
 import ru.openunity.hunterhint.ui.components.ErrorScreenE
 import ru.openunity.hunterhint.ui.enums.HuntingMethods
-import ru.openunity.hunterhint.ui.groundsPage.DataLoading
-import ru.openunity.hunterhint.ui.groundsPage.EmptyListMessage
 import ru.openunity.hunterhint.ui.personal.HorizontalMenuElement
 import ru.openunity.hunterhint.ui.registration.MonthDialog
 import ru.openunity.hunterhint.ui.registration.NextButton
@@ -62,22 +66,51 @@ import java.util.Locale
 @Composable
 internal fun BookingRoute(
     navigateUp: () -> Unit,
+    navigateToBookings: () -> Unit,
     offersId: Long,
     modifier: Modifier = Modifier,
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     viewModel.getOffer(offersId)
     BookingScreen(
-        navigateUp, viewModel, modifier
+        navigateToBookings, navigateUp, viewModel, modifier
     )
+}
+
+@Composable
+fun BookingScreen(
+    navigateToBookings: () -> Unit,
+    navigateUp: () -> Unit,
+    viewModel: BookingViewModel,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    when (uiState.bookRequestState) {
+        is BookRequestLoading -> {
+            DataLoading(
+                messageId = R.string.book, modifier = modifier.fillMaxSize()
+            )
+        }
+
+        is BookRequestWait -> {
+            BookingSuccess(uiState = uiState, navigateUp = navigateUp, viewModel = viewModel)
+        }
+
+        is BookRequestSuccess -> {
+            navigateToBookings()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingScreen(
-    navigateUp: () -> Unit, viewModel: BookingViewModel, modifier: Modifier = Modifier
+fun BookingSuccess(
+    uiState: BookingUiState,
+    navigateUp: () -> Unit,
+    viewModel: BookingViewModel,
+    modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+
     val offer = uiState.offer
     val screenNameResId =
         if (offer is OfferSuccess) offer.offer.typeStringRes else R.string.uploading
@@ -153,6 +186,45 @@ fun BookingSections(
                 modifier = Modifier.fillMaxSize()
             )
         }
+
+        BookingSections.ADDITIONAL -> {
+            AdditionalInfoField(
+                bookRequestState = uiState.bookRequestState,
+                additionalRequests = uiState.additionalRequests,
+                onClickBook = viewModel::book,
+                onAdditionalChange = viewModel::changeAdditionalInfo
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AdditionalInfoField(
+    bookRequestState: BookRequestState = BookRequestWait(),
+    additionalRequests: String = "Гостиница",
+    onClickBook: () -> Unit = {},
+    onAdditionalChange: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        OutlinedTextField(
+            value = additionalRequests,
+            onValueChange = onAdditionalChange,
+            label = { Text(stringResource(id = R.string.enter_additional_requests)) },
+            minLines = 7,
+            modifier = modifier
+                .padding(36.dp, 18.dp, 36.dp, 0.dp)
+                .fillMaxWidth()
+        )
+        if (bookRequestState is BookRequestWait) {
+            if (bookRequestState.resId != R.string.empty) {
+                WrongInput(textResourceId = bookRequestState.resId)
+            }
+        }
+        NextButton(
+            stringResourceId = R.string.book, onClickNext = onClickBook
+        )
     }
 }
 
@@ -163,7 +235,10 @@ fun BookingMenu(
     selectSection: (BookingSections) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         BookingSections.entries.forEach {
             HorizontalMenuElement(
                 isActive = it == currentSection,
@@ -176,6 +251,10 @@ fun BookingMenu(
 
                     BookingSections.HUNTING_METHODS -> {
                         uiState.isMethodNotSelected
+                    }
+
+                    BookingSections.ADDITIONAL -> {
+                        false
                     }
                 },
                 modifier = Modifier
@@ -196,7 +275,7 @@ fun ChoseHuntingMethod(
             HuntingMethodItem(
                 isSelect = selectedMethodId == it.id,
                 onClick = { selectMethod(it.id) },
-                huntingMethod = it
+                stringRes = it.stringRes
             )
         }
     }
@@ -206,7 +285,7 @@ fun ChoseHuntingMethod(
 fun HuntingMethodItem(
     isSelect: Boolean,
     onClick: () -> Unit,
-    huntingMethod: HuntingMethods,
+    @StringRes stringRes: Int,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -241,7 +320,7 @@ fun HuntingMethodItem(
             ) {}
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = stringResource(id = huntingMethod.stringRes).replaceFirstChar {
+                text = stringResource(id = stringRes).replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase(
                         Locale.getDefault()
                     ) else it.toString()
@@ -287,9 +366,9 @@ fun ChoseDate(
             modifier = Modifier
         )
         if (uiState.startDay.isCorrect && uiState.finalDay.isCorrect) {
-            Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.padding(12.dp))
             NextButton(
-                onClickNext = viewModel::nextSection, modifier.align(Alignment.CenterHorizontally)
+                onClickNext = viewModel::nextSection, Modifier.align(Alignment.CenterHorizontally)
             )
         }
     }

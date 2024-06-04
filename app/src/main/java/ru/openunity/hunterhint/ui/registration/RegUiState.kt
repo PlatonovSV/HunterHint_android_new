@@ -4,6 +4,8 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.dto.UserRegDto
 import ru.openunity.hunterhint.ui.State
 import ru.openunity.hunterhint.ui.Success
+import ru.openunity.hunterhint.ui.components.ComponentState
+import ru.openunity.hunterhint.ui.components.ComponentWait
 
 data class RegUiState(
     val isNameCorrect: Boolean = true,
@@ -22,8 +24,8 @@ data class RegUiState(
     val isPhoneStored: Boolean = false,
     val isEmailStored: Boolean = false,
     val state: State = Success(R.string.empty),
+    val regState: ComponentState = ComponentWait,
 
     val phoneConfirmation: Confirmation = Confirmation(),
     val emailConfirmation: Confirmation = Confirmation()
 )
-

@@ -16,13 +16,14 @@ import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.user.UserRepository
 import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.country
+import ru.openunity.hunterhint.dto.getCountryByCode
 import ru.openunity.hunterhint.models.database.User
 import ru.openunity.hunterhint.models.database.updateWithDto
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success
+import ru.openunity.hunterhint.ui.components.ComponentError
 import ru.openunity.hunterhint.ui.registration.Confirmation
-import ru.openunity.hunterhint.ui.registration.Country
 import java.io.IOException
 import javax.inject.Inject
 
@@ -48,14 +49,17 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
         }
     }
 
-    fun updateCountry(country: Country) {
-        _authUiState.update {
-            it.copy(
-                authRequestDto = it.authRequestDto.copy(
-                    countryCode = country.cCode
+    fun updateCountry(countryCode: Int) {
+        if (countryCode > 0) {
+            _authUiState.update {
+                it.copy(
+                    authRequestDto = it.authRequestDto.copy(
+                        countryCode = getCountryByCode(countryCode).cCode
+                    )
                 )
-            )
+            }
         }
+
     }
 
     private fun auth() {
@@ -73,13 +77,13 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
     }
 
     private fun processAuthorizationResponse(response: AuthResponseDto) {
-        if (response.isAuthorizationSuccessful) {
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (response.isAuthorizationSuccessful) {
+
                 try {
                     userRepository.insert(
                         User(
-                            id = response.userId,
-                            jwt = response.jwt
+                            id = response.userId, jwt = response.jwt
                         )
                     )
                     val dto = userRepository.getUsersData(response.jwt)
@@ -90,19 +94,20 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
                     }
                 } catch (e: IOException) {
                     _authUiState.update { it.copy(state = AppError(R.string.server_error, true)) }
+                    ComponentError(R.string.server_error)
                 } catch (e: HttpException) {
                     _authUiState.update { it.copy(state = AppError(R.string.no_internet, true)) }
                 }
-            }
-        } else {
-            _authUiState.update {
-                it.copy(
-                    state = AppError(R.string.wrong_password, true),
-                    isPasswordGood = false
-                )
+            } else {
+                _authUiState.update {
+                    it.copy(
+                        state = AppError(R.string.wrong_password, true), isPasswordGood = false
+                    )
+                }
             }
         }
     }
+
 
     fun changePassword(userInput: String) {
         _authUiState.update {
@@ -125,13 +130,10 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
     fun updatePhone(userInput: String) {
         val numberLength =
             _authUiState.value.authRequestDto.country.numberFormat.count { it == 'X' }
-        if (numberLength == 0 || numberLength >= userInput.length ||
-            userInput.length <= _authUiState.value.authRequestDto.phoneNumber.length
-        ) {
+        if (numberLength == 0 || numberLength >= userInput.length || userInput.length <= _authUiState.value.authRequestDto.phoneNumber.length) {
             _authUiState.update {
                 it.copy(
-                    isPhoneStored = true,
-                    authRequestDto = it.authRequestDto.copy(
+                    isPhoneStored = true, authRequestDto = it.authRequestDto.copy(
                         phoneNumber = userInput
                     )
                 )
@@ -143,8 +145,7 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
         runBlocking {
             _authUiState.update {
                 it.copy(
-                    isPhoneStored = true,
-                    state = Loading(R.string.loading)
+                    isPhoneStored = true, state = Loading(R.string.loading)
                 )
             }
 
@@ -153,8 +154,7 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
                 val isStored = userRepository.isPhoneStored(dto.phoneNumber, dto.countryCode)
                 _authUiState.update {
                     it.copy(
-                        state = Success(R.string.empty),
-                        isPhoneStored = isStored
+                        state = Success(R.string.empty), isPhoneStored = isStored
                     )
                 }
             } catch (e: IOException) {
@@ -178,9 +178,7 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
             _authUiState.update {
                 it.copy(
                     phoneConfirmation = it.phoneConfirmation.copy(
-                        userInput = code,
-                        code = code,
-                        isRequested = true
+                        userInput = code, code = code, isRequested = true
                     )
                 )
             }

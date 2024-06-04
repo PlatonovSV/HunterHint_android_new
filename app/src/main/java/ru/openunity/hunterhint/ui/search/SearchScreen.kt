@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,10 +37,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.navigation.TestTag
+import ru.openunity.hunterhint.ui.components.DataLoading
+import ru.openunity.hunterhint.ui.components.EmptyListMessage
 import ru.openunity.hunterhint.ui.components.ErrorScreenE
 import ru.openunity.hunterhint.ui.components.GroundImages
-import ru.openunity.hunterhint.ui.groundsPage.DataLoading
-import ru.openunity.hunterhint.ui.groundsPage.EmptyListMessage
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar
 import ru.openunity.hunterhint.ui.theme.uiElements_twoToneStar
 

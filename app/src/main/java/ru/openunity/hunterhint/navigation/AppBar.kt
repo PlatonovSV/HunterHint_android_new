@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,6 +14,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import ru.openunity.hunterhint.R
@@ -110,3 +112,22 @@ fun AppBottomAppBar(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HuntTopAppBar(@StringRes strResId: Int,
+                  navigateUp: () -> Unit,
+                  modifier: Modifier = Modifier
+) {
+    TopAppBar(title = { HuntTopAppBarTitle(strResId = strResId) },
+        navigationIcon = { NavigateUpButton(onClick = navigateUp)},
+        modifier = modifier)
+}
+
+@Composable
+fun HuntTopAppBarTitle(
+    @StringRes strResId: Int,
+    modifier: Modifier = Modifier) {
+    Text(text = stringResource(id = strResId), modifier = modifier)
+}
+

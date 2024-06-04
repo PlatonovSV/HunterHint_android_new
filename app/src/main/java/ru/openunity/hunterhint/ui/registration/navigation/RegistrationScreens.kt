@@ -81,14 +81,10 @@ fun NavGraphBuilder.regEmailScreen(
 }
 
 fun NavGraphBuilder.regCompletionScreen(
-    navigateOnCancel: () -> Unit,
-    navigateOnComplete: () -> Unit,
+    navigateToPersonal: () -> Unit,
 ) {
     composable(route = AppScreen.RegCompletion.name) {
-        RegCompletionRoute(
-            navigateOnCancel,
-            navigateOnComplete
-        )
+        RegCompletionRoute(navigateToPersonal = navigateToPersonal)
     }
 }
 

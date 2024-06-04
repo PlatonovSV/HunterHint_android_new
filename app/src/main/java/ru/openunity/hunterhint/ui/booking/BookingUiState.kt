@@ -2,6 +2,7 @@ package ru.openunity.hunterhint.ui.booking
 
 import androidx.annotation.StringRes
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.models.database.User
 import ru.openunity.hunterhint.ui.registration.Month
 import java.time.LocalDateTime
 import java.time.format.DateTimeParseException
@@ -16,11 +17,17 @@ data class BookingUiState(
     val isShowFinalError: Boolean = false,
     val offer: OfferState = OfferLoading,
     val offerId: Long = -1L,
-    val huntingMethodId: Int = -1
+    val huntingMethodId: Int = -1,
+    val additionalRequests: String = "",
+    val user: User? = null,
+    val bookRequestState: BookRequestState = BookRequestWait(R.string.empty)
 ) {
 
+
     val isDateWrong: Boolean
-        get() = !(startDay.isActual && finalDay.date.isAfter(startDay.date))
+        get() {
+            return !(LocalDateTime.now().isBefore(startDay.date) && startDay.date.isBefore(finalDay.date))
+        }
 
     val isMethodNotSelected: Boolean
         get() = huntingMethodId == -1
@@ -28,11 +35,12 @@ data class BookingUiState(
 
 enum class BookingSections(@StringRes val sectionNameId: Int) {
     DATE(R.string.date),
-    HUNTING_METHODS(R.string.hunting_method)
+    HUNTING_METHODS(R.string.hunting_method),
+    ADDITIONAL(R.string.additional_information)
 }
 
 data class UserDate(
-    val day: Int = 0, val monthCode: Int = Month.JANUARY.mCode, val year: Int = 0
+    val day: Int = LocalDateTime.now().dayOfMonth, val monthCode: Int = LocalDateTime.now().monthValue, val year: Int = LocalDateTime.now().year
 ) {
     val month: Month
         get() {
@@ -64,7 +72,7 @@ data class UserDate(
     val date: LocalDateTime
         get()
         = try {
-            LocalDateTime.parse("${year}-${month.mCode}-${day}T00:00:00")
+            LocalDateTime.parse("${year}-${if(month.mCode < 10) "0" else ""}${month.mCode}-${day}T00:00:00")
         } catch (e: DateTimeParseException) {
             LocalDateTime.now()
         }
@@ -120,6 +128,14 @@ data class UserDate(
     }
 
 }
+
+sealed interface BookRequestState
+
+class BookRequestWait(@StringRes val resId: Int = R.string.empty) : BookRequestState
+
+data object BookRequestLoading : BookRequestState
+
+data object BookRequestSuccess : BookRequestState
 
 
 

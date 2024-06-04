@@ -11,13 +11,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,16 +42,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.models.BookingCard
+import ru.openunity.hunterhint.ui.components.EmptyListMessage
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 import kotlin.math.max
 
@@ -53,28 +65,27 @@ enum class PersonalSections(@StringRes val sectionNameId: Int) {
 
 @Composable
 fun PersonalAccountScreen(
-    uiState: PersonalUiState,
-    changeSection: (PersonalSections) -> Unit,
-    imgUrl: String = "", modifier: Modifier = Modifier
+    navigateToAuth: () -> Unit,
+    navigateToBookingInfo: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: PersonalViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val imgUrl = ""
     val currentSection = uiState.currentSection
-    /*
-           Фотография
-           пользователя
-
-    Список охот
-    Любимые хозяйства
-    Настройки
-     */
     Column(modifier = modifier, verticalArrangement = Arrangement.Top) {
         ProfilePhoto(imgUrl = imgUrl)
         PersonalMenu(
             currentSection = currentSection,
-            changeSection = changeSection
+            changeSection = viewModel::changeSection
         )
         when (currentSection) {
             PersonalSections.BOOKINGS -> {
-                BookingScreen()
+                UserBookings(
+                    navigateToBookingInfo = navigateToBookingInfo,
+                    userBookings = uiState.bookingCards,
+                    Modifier.fillMaxSize()
+                )
             }
 
             PersonalSections.FAVORITES -> {
@@ -82,7 +93,10 @@ fun PersonalAccountScreen(
             }
 
             PersonalSections.SETTINGS -> {
-                SettingsScreen(uiState, onClickLogOut = {})
+                SettingsScreen(uiState, onClickLogOut = {
+                    viewModel.logout()
+                    navigateToAuth()
+                })
             }
         }
     }
@@ -164,6 +178,7 @@ fun HorizontalMenuElement(
                         .size(24.dp)
                 ) {}
             }
+
             isWrong -> {
                 Box(
                     modifier = Modifier
@@ -184,26 +199,25 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        Text(text = uiState.user.toString())
         Spacer(modifier = Modifier.weight(1f))
-        Button(
-            shape = MaterialTheme.shapes.medium, onClick = onClickLogOut,
-            modifier = Modifier
+        LogoutButton(
+            onClickLogOut,
+            Modifier
+                .padding(22.dp)
                 .align(Alignment.CenterHorizontally)
-                .background(color = MaterialTheme.colorScheme.error),
-        ) {
-            Text(
-                text = stringResource(id = R.string.logout),
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
+        )
     }
 }
 
 @Composable
-fun BookingScreen(modifier: Modifier = Modifier) {
-    Column {
-
+fun LogoutButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TextButton(onClick = onClick, modifier = modifier) {
+        Text(
+            text = stringResource(id = R.string.logout), style = MaterialTheme.typography.labelLarge
+        )
     }
 }
 
@@ -247,14 +261,87 @@ class RoundedPolygonShape(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PersonalAccountScreenPreview(modifier: Modifier = Modifier) {
     HunterHintTheme {
-        PersonalAccountScreen(
-            uiState = PersonalUiState(),
-            changeSection = {},
-            imgUrl = ""
+        PersonalAccountScreen({ },{})
+    }
+}
+
+
+@Composable
+fun UserBookings(
+    navigateToBookingInfo: (Long) -> Unit,
+    userBookings: List<BookingCard>,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (userBookings.isEmpty()) {
+            item {
+                EmptyListMessage(
+                    messageId = R.string.no_bookings,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        } else {
+            items(userBookings) {
+                UsersBookingCard(it,navigateToBookingInfo)
+            }
+        }
+    }
+}
+
+@Composable
+fun UsersBookingCard(
+    content: BookingCard,
+    navigateToBookingInfo: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        elevation = CardDefaults.elevatedCardElevation(),
+        modifier = modifier
+            .padding(18.dp, 8.dp)
+            .fillMaxWidth()
+            .clickable { navigateToBookingInfo(content.id) }
+    ) {
+        UsersBookingCardContent(content = content)
+    }
+}
+
+@Composable
+fun UsersBookingCardContent(
+    content: BookingCard,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = stringResource(id = content.typeStrRes),
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineMedium
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = content.groundsName,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "${content.startDate} — ${content.finalDate}",
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            style = MaterialTheme.typography.headlineSmall
         )
     }
 }
+
+

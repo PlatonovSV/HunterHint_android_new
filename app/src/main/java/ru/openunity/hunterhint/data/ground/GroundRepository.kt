@@ -6,5 +6,4 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GroundRepository @Inject constructor(remoteDataSource: GroundRemoteDataSource) : GroundRetrofitService by remoteDataSource {
-}
+class GroundRepository @Inject constructor(remoteDataSource: GroundRemoteDataSource) : GroundRetrofitService by remoteDataSource

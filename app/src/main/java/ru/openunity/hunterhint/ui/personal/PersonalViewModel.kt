@@ -3,59 +3,66 @@ package ru.openunity.hunterhint.ui.personal
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import ru.openunity.hunterhint.data.user.UserRepository
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.openunity.hunterhint.models.database.User
+import retrofit2.HttpException
+import ru.openunity.hunterhint.data.booking.BookingRepository
+import ru.openunity.hunterhint.data.user.UserRepository
+import ru.openunity.hunterhint.models.BookingCard
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
-class PersonalViewModel @Inject constructor(private val userRepository: UserRepository) :
-    ViewModel() {
+class PersonalViewModel @Inject constructor(
+    private val userRepository: UserRepository, private val bookingRepository: BookingRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(PersonalUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        try {
-            viewModelScope.launch {
-                userRepository.getUser().collect {
-                    it.apply {
-                        _uiState.update { uiState ->
-                            uiState.copy(
-                                user = if (it == null)  User() else it
+        viewModelScope.launch {
+            userRepository.getUser().collect {
+                _uiState.update { ui ->
+                    if (it == null) {
+                        ui.copy(
+                            isLoggedIn = false
+                        )
+                    } else {
+                        ui.copy(
+                            user = it
+                        )
+                    }
+                }
+            }
+        }
+        viewModelScope.launch {
+            while (true) {
+                val user = _uiState.value.user
+                if (user.jwt.isNotEmpty()) {
+                    val bookingCards = try {
+                        bookingRepository.getUsersBooking(
+                            token = user.jwt
+                        ).sortedBy { it.id }
+                    } catch (e: IOException) {
+                        listOf()
+                    } catch (e: HttpException) {
+                        listOf()
+                    }
+                    if (bookingCards.isNotEmpty() && _uiState.value.bookingCards != bookingCards) {
+                        _uiState.update {
+                            it.copy(
+                                bookingCards = BookingCard.fromDtoList(bookingCards)
                             )
                         }
                     }
-
                 }
-            }
-        } catch (e: NoSuchElementException) {
-            _uiState.update {
-                it.copy(isLoggedIn = false)
+                delay(3000)
             }
         }
     }
-    /*private val userLocalData: StateFlow<User> =
-        userRepository.getUser().map { _uiState.update { ui ->
-            ui.copy(user = it)
-        }
-        it
-        }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-                initialValue = PersonalUiState()
-            )
-            сервер - источник достоверности
-            данные с сервера загружаются в бд
-            данные из бд отображаются на экране
-            изменения отправляются на сервер и после в бд
-
-            переменная - uiState
-            переменная - LocalData
-            пtркменная - RemoteData
-*/
 
     fun changeSection(personalSections: PersonalSections) {
         _uiState.update {

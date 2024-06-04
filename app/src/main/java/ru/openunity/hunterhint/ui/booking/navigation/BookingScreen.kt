@@ -6,10 +6,12 @@ import ru.openunity.hunterhint.navigation.AppScreen
 import ru.openunity.hunterhint.ui.booking.BookingRoute
 
 fun NavGraphBuilder.bookingScreen(
-    navigateUp: () -> Unit,
-    offersId: Long
+    navigateUp: () -> Unit, navigateToBookings: () -> Unit, offersId: Long
 ) {
     composable(route = AppScreen.Booking.route) {
-        BookingRoute(navigateUp, offersId)
+        BookingRoute(
+            navigateToBookings, navigateUp,
+            offersId
+        )
     }
 }

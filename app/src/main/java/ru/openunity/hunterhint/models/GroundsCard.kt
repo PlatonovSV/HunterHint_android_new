@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GroundsCard(
-    val id: Int,
-    val name: String,
-    val area: Double,
-    val isHotel: Boolean,
-    val isBath: Boolean,
-    val regionName: String,
-    val municipalDistrictName: String,
-    val minCost: Int,
-    val images: List<Photo>,
+    val id: Int = -1,
+    val name: String = "",
+    val area: Double = .0,
+    val isHotel: Boolean = false,
+    val isBath: Boolean = false,
+    val regionName: String = "",
+    val municipalDistrictName: String = "",
+    val minCost: Int = 0,
+    val images: List<Photo> = listOf(),
     @kotlinx.serialization.Transient
     val numberOfCurrentImage: Int = 0,
-    val rating: Double,
-    val reviewsQuantity: Int
+    val rating: Double = .0,
+    val reviewsQuantity: Int = 0
 )

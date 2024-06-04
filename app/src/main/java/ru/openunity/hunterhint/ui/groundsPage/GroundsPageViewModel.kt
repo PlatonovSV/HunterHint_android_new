@@ -4,18 +4,26 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import ru.openunity.hunterhint.R
+import ru.openunity.hunterhint.data.comment.CommentRepository
 import ru.openunity.hunterhint.data.ground.GroundRepository
 import ru.openunity.hunterhint.data.offer.FindOffersParams
 import ru.openunity.hunterhint.data.offer.OfferRepository
 import ru.openunity.hunterhint.data.user.UserRepository
+import ru.openunity.hunterhint.models.Ground
+import ru.openunity.hunterhint.models.Review
 import ru.openunity.hunterhint.ui.StateE
+import ru.openunity.hunterhint.ui.components.ComponentError
+import ru.openunity.hunterhint.ui.components.ComponentLoading
+import ru.openunity.hunterhint.ui.components.ComponentSuccess
 import java.io.IOException
 import javax.inject.Inject
 
@@ -23,14 +31,16 @@ import javax.inject.Inject
 class GroundsPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val groundsRepository: GroundRepository,
-    private val offerRepository: OfferRepository
+    private val offerRepository: OfferRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModel() {
 
-    private var _uiState: MutableStateFlow<GroundsPageUiState> = MutableStateFlow(GroundsPageUiState())
+    private var _uiState: MutableStateFlow<GroundsPageUiState> =
+        MutableStateFlow(GroundsPageUiState())
 
     init {
         viewModelScope.launch {
-            userRepository.isAuthorized.collect {isAuthorized ->
+            userRepository.isAuthorized.collect { isAuthorized ->
                 _uiState.update {
                     it.copy(
                         isAuthorized = isAuthorized
@@ -55,11 +65,16 @@ class GroundsPageViewModel @Inject constructor(
     }
 
     private fun getGround(groundsId: Int) {
+        _uiState.update {
+            it.copy(
+                ground = Ground(id = groundsId)
+            )
+        }
+        downloadReviewList()
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    state = StateE.Loading,
-                    offersParams = FindOffersParams(groundsId = groundsId)
+                    state = StateE.Loading, offersParams = FindOffersParams(groundsId = groundsId)
                 )
             }
             _uiState.update {
@@ -124,8 +139,107 @@ class GroundsPageViewModel @Inject constructor(
         }
     }
 
-    fun addToFavorite() {
-        TODO("Not yet implemented")
+    fun downloadReviewList() {
+        val groundsId = _uiState.value.ground.id
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(reviewsListState = ComponentLoading)
+            }
+            val result = try {
+                val reviewIds = commentRepository.getGroundsReview(groundsId)
+                val reviews = mutableListOf<Review>()
+                for (id in reviewIds) {
+                    reviews.add(
+                        Review(
+                            id = id, state = ComponentLoading
+                        )
+                    )
+                }
+                _uiState.update {
+                    it.copy(
+                        reviews = reviews
+                    )
+                }
+                ComponentSuccess
+            } catch (e: IOException) {
+                ComponentError(R.string.server_error)
+            } catch (e: HttpException) {
+                ComponentError(R.string.no_internet)
+            }
+            _uiState.update {
+                it.copy(reviewsListState = result)
+            }
+            downloadReview()
+        }
+    }
+
+    fun downloadReview() {
+        val reviews = _uiState.value.reviews
+        reviews.mapIndexed { index, review ->
+            if (review.state !is ComponentSuccess) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    var newReview: Review = review
+                    val result = withContext(Dispatchers.IO) {
+                        try {
+                            val dto = commentRepository.getReview(review.id)
+                            newReview = Review.fromDto(dto)
+                            ComponentSuccess
+                        } catch (e: IOException) {
+                            ComponentError(R.string.server_error)
+                        } catch (e: HttpException) {
+                            ComponentError(R.string.no_internet)
+                        }
+                    }
+                    newReview = newReview.copy(state = result)
+                    _uiState.update { groundsPageUiState ->
+                        groundsPageUiState.copy(reviews = groundsPageUiState.reviews.toMutableList()
+                            .apply {
+                                set(index, newReview)
+                            })
+                    }
+                }
+            }
+        }
+    }
+
+    fun expandComment(id: Long) {
+        _uiState.update { groundsPageUiState ->
+            groundsPageUiState.copy(reviews = groundsPageUiState.reviews.map {
+                if (it.id == id) {
+                    it.copy(isExpanded = !it.isExpanded)
+                } else {
+                    it
+                }
+            })
+        }
+    }
+
+    fun changeReviewImage(reviewId: Long, isIncrement: Boolean) {
+        _uiState.update { groundsPageUiState ->
+            groundsPageUiState.copy(
+                reviews = groundsPageUiState.reviews.map {
+                    if (it.id == reviewId) {
+                        var numberOfCurrentImage = it.numberOfCurrentImage
+                        if (isIncrement) {
+                            if (numberOfCurrentImage == it.images.size - 1) {
+                                numberOfCurrentImage = 0
+                            } else {
+                                numberOfCurrentImage++
+                            }
+                        } else {
+                            if (numberOfCurrentImage == 0) {
+                                numberOfCurrentImage = it.images.size - 1
+                            } else {
+                                numberOfCurrentImage--
+                            }
+                        }
+                        it.copy(numberOfCurrentImage = numberOfCurrentImage)
+                    } else {
+                        it
+                    }
+                }
+            )
+        }
     }
 
 }

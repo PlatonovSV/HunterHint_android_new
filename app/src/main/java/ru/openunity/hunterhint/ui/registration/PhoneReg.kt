@@ -49,7 +49,7 @@ internal fun RegPhoneRoute(
     modifier: Modifier = Modifier,
     viewModel: RegViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 ) {
-    viewModel.updateCountry(getCountryByCode(countryId))
+    viewModel.updateCountry(countryId)
     val uiState by viewModel.regUiState.collectAsState()
     PhoneRegScreen(
         onClickNext = {

@@ -16,5 +16,3 @@ class Loading(message: Int): State(message)
 class AppError(message: Int, val isRepeatPossible: Boolean, val imageId: Int = R.drawable.ic_connection_error): State(message)
 
 class Success(message: Int = R.string.empty, val result: Boolean = false): State(message)
-
-open class UiState(val state: State)

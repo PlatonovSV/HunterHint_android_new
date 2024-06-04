@@ -18,16 +18,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ru.openunity.hunterhint.R
-import ru.openunity.hunterhint.dto.getCountryByCode
 import ru.openunity.hunterhint.ui.Success
 import ru.openunity.hunterhint.ui.authorization.AuthViewModel
 import ru.openunity.hunterhint.ui.authorization.PasswordAuthScreen
 import ru.openunity.hunterhint.ui.authorization.PhoneAuthScreen
 import ru.openunity.hunterhint.ui.authorization.navigation.authPhoneCodeScreen
 import ru.openunity.hunterhint.ui.booking.navigation.bookingScreen
+import ru.openunity.hunterhint.ui.bookingInfo.navigation.bookingInfoScreen
+import ru.openunity.hunterhint.ui.comment.navigation.commentScreen
 import ru.openunity.hunterhint.ui.groundsPage.navigation.groundsPageScreen
 import ru.openunity.hunterhint.ui.personal.PersonalAccountScreen
-import ru.openunity.hunterhint.ui.personal.PersonalViewModel
 import ru.openunity.hunterhint.ui.registration.Country
 import ru.openunity.hunterhint.ui.registration.navigation.regCompletionScreen
 import ru.openunity.hunterhint.ui.registration.navigation.regDateScreen
@@ -37,6 +37,7 @@ import ru.openunity.hunterhint.ui.registration.navigation.regPassword
 import ru.openunity.hunterhint.ui.registration.navigation.regPhoneCodeScreen
 import ru.openunity.hunterhint.ui.registration.navigation.regPhoneScreen
 import ru.openunity.hunterhint.ui.search.navigation.searchScreen
+import ru.openunity.hunterhint.ui.searchFilters.navigation.searchFiltersScreen
 
 
 enum class TestTag {
@@ -76,7 +77,7 @@ fun HunterHintApp(
     }) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppScreen.Search.name,
+            startDestination = AppScreen.SearchFilters.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             searchScreen(onGroundsCardClick = {
@@ -97,6 +98,9 @@ fun HunterHintApp(
                 navigateUp = {
                     navController.navigateUp()
                 },
+                navigateToBookings = {
+                    navController.navigate(AppScreen.Personal.route)
+                },
                 offersId = backStackEntry?.arguments?.getString("offersId")?.toLongOrNull() ?: -1L
             )
             regPhoneScreen(navigateToAuth = {
@@ -107,7 +111,9 @@ fun HunterHintApp(
             }, navigateToRegPhoneCode = {
                 navController.navigate(AppScreen.RegPhoneCode.route)
             },
-                countryId = backStackEntry?.arguments?.getString("countryId")?.toIntOrNull() ?: Country.RUSSIAN_FEDERATION.cCode)
+                countryId = backStackEntry?.arguments?.getString("countryId")?.toIntOrNull()
+                    ?: Country.RUSSIAN_FEDERATION.cCode
+            )
             regPhoneCodeScreen(navigateUp = { countryId ->
                 navController.popBackStack()
                 navController.popBackStack()
@@ -127,15 +133,18 @@ fun HunterHintApp(
             }, navigateToRegCompletion = {
                 navController.navigate(AppScreen.RegCompletion.name)
             })
-            regCompletionScreen(navigateOnCancel = {
-                navController.navigate(AppScreen.Search.name)
-            }, navigateOnComplete = {
-                navController.navigate(AppScreen.Search.name)
-            })
+            regCompletionScreen(
+                navigateToPersonal = {
+                    navController.popBackStack(AppScreen.Search.name, false)
+                    navController.navigate(AppScreen.Personal.route)
+                }
+            )
             composable(route = AppScreen.AuthPhone.route) {
-                val authViewModel: AuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
-                val countryId = backStackEntry?.arguments?.getString("countryId")?.toIntOrNull() ?: Country.RUSSIAN_FEDERATION.cCode
-                authViewModel.updateCountry(getCountryByCode(countryId))
+                val authViewModel: AuthViewModel =
+                    hiltViewModel(LocalContext.current as ComponentActivity)
+                val countryId = backStackEntry?.arguments?.getString("countryId")?.toIntOrNull()
+                    ?: Country.RUSSIAN_FEDERATION.cCode
+                authViewModel.updateCountry(countryId)
                 val authUiState by authViewModel.authUiState.collectAsState()
                 PhoneAuthScreen(
                     onClickNext = {
@@ -158,10 +167,11 @@ fun HunterHintApp(
             authPhoneCodeScreen(navigateUp = { countryId ->
                 navController.popBackStack()
                 navController.popBackStack()
-                navController.navigate("${AppScreen.AuthPhone}/$countryId")
+                navController.navigate("${AppScreen.AuthPhone.name}/$countryId")
             })
             composable(route = AppScreen.AuthPassword.name) {
-                val authViewModel: AuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+                val authViewModel: AuthViewModel =
+                    hiltViewModel(LocalContext.current as ComponentActivity)
                 val authUiState by authViewModel.authUiState.collectAsState()
                 val state = authUiState.state
                 if (state is Success && state.result) {
@@ -176,12 +186,37 @@ fun HunterHintApp(
                 )
             }
             composable(route = AppScreen.Personal.name) {
-                val personalViewModel: PersonalViewModel = hiltViewModel()
-                val personalUiState by personalViewModel.uiState.collectAsState()
                 PersonalAccountScreen(
-                    uiState = personalUiState, changeSection = personalViewModel::changeSection
+                    navigateToAuth = {
+                        navController.popBackStack()
+                        navController.navigate("${AppScreen.AuthPhone.name}/${Country.RUSSIAN_FEDERATION.cCode}")
+                    },
+                    navigateToBookingInfo = { id ->
+                        navController.navigate("${AppScreen.BookingInfo.name}/$id")
+                    }
                 )
             }
+            bookingInfoScreen(
+                navController = navController,
+                navigateUp = { navController.navigateUp() },
+                navigateToCreateComment = { bookingId ->
+                    navController.navigate("${AppScreen.Comment.name}/$bookingId")
+                },
+                navigateToGroundsPage = {
+                    navController.navigate("${AppScreen.GroundsPage.name}/${it}")
+                }
+            )
+            commentScreen(
+                navController = navController,
+                navigateUp = {
+                    navController.navigateUp()
+                }
+            )
+            searchFiltersScreen(
+                navigateUp = {
+                    navController.navigateUp()
+                }
+            )
         }
     }
 }

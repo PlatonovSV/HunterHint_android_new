@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Photo(
-    val id: Int,
-    val imgSrc: String
+    val id: Long = -1,
+    val imgSrc: String = ""
 )

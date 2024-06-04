@@ -17,5 +17,9 @@ enum class AppScreen(val route: String) {
     AuthPhoneCode(AuthPhoneCode.name),
     AuthPassword(AuthPassword.name),
     Personal(Personal.name),
-    Booking("${Booking.name}/{offersId}")
+    Booking("${Booking.name}/{offersId}"),
+    BookingInfo("${BookingInfo.name}/{bookingId}"),
+    Comment("${Comment.name}/{bookingId}"),
+    SearchFilters(SearchFilters.name),
+    SearchFiltersScreen(SearchFiltersScreen.name)
 }
