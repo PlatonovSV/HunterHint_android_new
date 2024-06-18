@@ -6,11 +6,14 @@ import ru.openunity.hunterhint.navigation.AppScreen
 import ru.openunity.hunterhint.ui.search.SearchRoute
 
 fun NavGraphBuilder.searchScreen(
-    onGroundsCardClick: (Int) -> Unit
+    onGroundsCardClick: (Int) -> Unit,
+    navigateToFilters: () -> Unit,
 ) {
-    composable(route = AppScreen.Search.name) {
+    composable(route = AppScreen.Search.route) {
         SearchRoute(
-            onGroundsCardClick
+            onGroundsCardClick,
+            navigateToFilters,
+            groundsIds = it.arguments?.getString("groundIds")
         )
     }
 }

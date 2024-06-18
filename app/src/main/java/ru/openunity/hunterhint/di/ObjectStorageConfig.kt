@@ -8,5 +8,6 @@ data class ObjectStorageConfig(
 )
 
 enum class BucketsFolders {
-    COMMENT
+    COMMENT,
+    USER
 }

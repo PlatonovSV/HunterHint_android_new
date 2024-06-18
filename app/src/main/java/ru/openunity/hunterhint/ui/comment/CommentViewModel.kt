@@ -171,7 +171,7 @@ class CommentViewModel @Inject constructor(
 
 }
 
-private fun convertUrisToFiles(context: Context, uris: List<Uri>): List<File> {
+fun convertUrisToFiles(context: Context, uris: List<Uri>): List<File> {
     return uris.mapNotNull { uri ->
         // Check if the URI is from a file provider
         if (uri.scheme == "content") {

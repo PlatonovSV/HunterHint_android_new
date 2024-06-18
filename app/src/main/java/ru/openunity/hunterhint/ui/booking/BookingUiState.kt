@@ -72,7 +72,7 @@ data class UserDate(
     val date: LocalDateTime
         get()
         = try {
-            LocalDateTime.parse("${year}-${if(month.mCode < 10) "0" else ""}${month.mCode}-${day}T00:00:00")
+            LocalDateTime.parse("${year}-${if(month.mCode < 10) "0" else ""}${month.mCode}-${if (day >= 10) day.toString() else "0$day"}T00:00:00")
         } catch (e: DateTimeParseException) {
             LocalDateTime.now()
         }

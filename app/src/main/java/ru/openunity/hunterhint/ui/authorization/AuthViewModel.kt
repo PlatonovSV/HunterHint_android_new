@@ -18,7 +18,6 @@ import ru.openunity.hunterhint.dto.AuthResponseDto
 import ru.openunity.hunterhint.dto.country
 import ru.openunity.hunterhint.dto.getCountryByCode
 import ru.openunity.hunterhint.models.database.User
-import ru.openunity.hunterhint.models.database.updateWithDto
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success
@@ -88,7 +87,7 @@ class AuthViewModel @Inject constructor(private val userRepository: UserReposito
                     )
                     val dto = userRepository.getUsersData(response.jwt)
                     val user = userRepository.getUser().first()!!
-                    userRepository.update(updateWithDto(user, dto))
+                    userRepository.update(User.updateWithDto(user, dto))
                     _authUiState.update {
                         AuthUiState(state = Success(result = true))
                     }

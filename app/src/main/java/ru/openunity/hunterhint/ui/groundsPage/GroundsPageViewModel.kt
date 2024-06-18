@@ -92,6 +92,20 @@ class GroundsPageViewModel @Inject constructor(
                     it.copy(state = StateE.Error)
                 }
             }
+            _uiState.update {
+                try {
+                    it.copy(
+                        groundsOwner = groundsRepository.getGroundsOwner(_uiState.value.ground.id),
+                        state = StateE.Success
+                    )
+                } catch (e: IOException) {
+                    Log.e("IOException", e.toString())
+                    it.copy(state = StateE.Error)
+                } catch (e: HttpException) {
+                    Log.e("HttpException", e.message())
+                    it.copy(state = StateE.Error)
+                }
+            }
             if (_uiState.value.state == StateE.Success) {
                 getOffers()
             }

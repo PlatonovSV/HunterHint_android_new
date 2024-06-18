@@ -1,5 +1,6 @@
 package ru.openunity.hunterhint.ui.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,10 +18,12 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,24 +44,33 @@ import ru.openunity.hunterhint.ui.components.DataLoading
 import ru.openunity.hunterhint.ui.components.EmptyListMessage
 import ru.openunity.hunterhint.ui.components.ErrorScreenE
 import ru.openunity.hunterhint.ui.components.GroundImages
+import ru.openunity.hunterhint.ui.groundsPage.GroundsPageTitle
 import ru.openunity.hunterhint.ui.theme.uiElements_filledStar
 import ru.openunity.hunterhint.ui.theme.uiElements_twoToneStar
+import java.util.ArrayList
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchRoute(
     onGroundsCardClick: (Int) -> Unit,
+    navigateToFilters: () -> Unit,
+    groundsIds: String?,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
+    viewModel.setGroundsIds(groundsIds)
     val uiState by viewModel.searchUiState.collectAsState()
-    Surface(
-        modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+    Scaffold(
+        topBar = {TopAppBar(title = { GroundsPageTitle(navigateToFilters = navigateToFilters) },Modifier.padding(30.dp, 0.dp,48.dp,0.dp))},
+        modifier = modifier
+            .background(color = MaterialTheme.colorScheme.background)
+            .fillMaxSize()
     ) {
         SearchScreen(
             onGroundsCardClick = onGroundsCardClick,
             uiState = uiState,
             viewModel = viewModel,
-            modifier = Modifier
+            modifier = Modifier.padding(it)
         )
     }
 }
@@ -73,27 +85,28 @@ fun SearchScreen(
     when (val groundIds = uiState.groundIds) {
         is IdsLoading -> {
             DataLoading(
-                messageId = R.string.search_for_hunting_grounds, modifier = Modifier.fillMaxSize()
+                messageId = R.string.search_for_hunting_grounds, modifier = modifier.fillMaxSize()
             )
         }
 
         is IdsError -> {
             ErrorScreenE(
-                retryAction = viewModel::getGroundIds, modifier = Modifier.fillMaxSize()
+                retryAction = viewModel::getGroundIds, modifier = modifier.fillMaxSize()
             )
         }
 
         is IdsSuccess -> {
             if (groundIds.ids.isEmpty()) {
                 EmptyListMessage(
-                    messageId = R.string.no_ground_ids, modifier = Modifier.fillMaxSize()
+                    messageId = R.string.no_ground_ids, modifier = modifier.fillMaxSize()
                 )
             } else {
                 GroundCards(
                     cards = uiState.cards,
                     changeImage = viewModel::changeImage,
                     retryGroundsUpload = viewModel::getGrounds,
-                    onClick = onGroundsCardClick
+                    onClick = onGroundsCardClick,
+                    modifier = modifier
                 )
             }
 

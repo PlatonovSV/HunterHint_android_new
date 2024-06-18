@@ -12,9 +12,9 @@ data class UserDto(
     val dateOfBirth: String = "",
     val gender: Int = 0,
     val countryCode: Int = 0,
-) {
-
-}
+    val profilePhotoUrl: String = "",
+    val accessLevel: Int = 0
+)
 
 fun getGenderByCode(gCode: Int) = if (gCode == 0) Gender.MALE else Gender.FEMALE
 

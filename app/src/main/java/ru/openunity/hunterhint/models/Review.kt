@@ -3,6 +3,8 @@ package ru.openunity.hunterhint.models
 import ru.openunity.hunterhint.dto.ReviewDto
 import ru.openunity.hunterhint.ui.components.ComponentLoading
 import ru.openunity.hunterhint.ui.components.ComponentState
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 data class Review(
     val id: Long = 0,
@@ -22,7 +24,8 @@ data class Review(
         fun fromDto(dto: ReviewDto): Review {
             return Review(
                 id = dto.id,
-                dateOfCreation = dto.dateOfCreation,
+                dateOfCreation = OffsetDateTime.parse(dto.dateOfCreation)
+                    .format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                 userName = dto.userName,
                 userLastName = dto.userLastName,
                 startDate = dto.startDate,

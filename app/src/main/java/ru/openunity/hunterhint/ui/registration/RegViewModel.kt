@@ -26,7 +26,7 @@ import ru.openunity.hunterhint.dto.birthMonth
 import ru.openunity.hunterhint.dto.country
 import ru.openunity.hunterhint.dto.getCountryByCode
 import ru.openunity.hunterhint.models.database.User
-import ru.openunity.hunterhint.models.database.updateWithDto
+
 import ru.openunity.hunterhint.ui.AppError
 import ru.openunity.hunterhint.ui.Loading
 import ru.openunity.hunterhint.ui.Success
@@ -114,7 +114,7 @@ class RegViewModel @Inject constructor(
                     )
                     val dto = userRepository.getUsersData(response.jwt)
                     val user = userRepository.getUser().first()!!
-                    userRepository.update(updateWithDto(user, dto))
+                    userRepository.update(User.updateWithDto(user, dto))
                     clearData()
                     ComponentSuccess
                 } catch (e: IOException) {

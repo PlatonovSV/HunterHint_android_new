@@ -22,13 +22,6 @@ class SearchViewModel @Inject constructor(private val groundsRepository: GroundR
     private val _uiState = MutableStateFlow(SearchUiState())
     val searchUiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    /**
-     * Call getGrounds() on init so we can display status immediately.
-     */
-    init {
-        getGroundIds()
-    }
-
     fun getGroundIds() {
         _uiState.update {
             it.copy(
@@ -116,6 +109,30 @@ class SearchViewModel @Inject constructor(private val groundsRepository: GroundR
                 it.copy(
                     cards = CardsSuccess(cardsNew)
                 )
+            }
+        }
+    }
+
+    fun setGroundsIds(groundsIds: String?) {
+        if (groundsIds != null) {
+            val listOfId = if (groundsIds != "$") {
+                groundsIds.split('$').mapNotNull {
+                    it.toIntOrNull()
+                }
+
+            } else {
+                listOf()
+            }
+            _uiState.update {
+                it.copy(
+                    groundIds = IdsSuccess(listOfId)
+                )
+            }
+            getGrounds()
+        } else {
+            val state = _uiState.value.groundIds
+            if (state !is IdsSuccess) {
+                getGroundIds()
             }
         }
     }

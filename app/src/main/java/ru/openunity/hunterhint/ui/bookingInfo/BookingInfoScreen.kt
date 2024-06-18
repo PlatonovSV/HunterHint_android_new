@@ -3,10 +3,8 @@ package ru.openunity.hunterhint.ui.bookingInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -31,7 +29,9 @@ import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.navigation.HuntTopAppBar
 import ru.openunity.hunterhint.ui.bottomAppBar.HuntBottomAppBar
 import ru.openunity.hunterhint.ui.components.ComponentScreen
+import ru.openunity.hunterhint.ui.components.ComponentSuccess
 import ru.openunity.hunterhint.ui.groundsPage.HuntingOffer
+import ru.openunity.hunterhint.ui.personal.UserCard
 import ru.openunity.hunterhint.ui.search.GroundItem
 import java.time.format.DateTimeFormatter
 
@@ -78,12 +78,22 @@ fun BookingInfoScreen(
             loadingStrResId = R.string.loading_grounds_card,
             waitContent = {},
             successContent = {
-                BookingInfoGroundCard(
-                    content = uiState.groundsCard,
-                    onClick = navigateToGroundsPage,
-                    changeImage = viewModel::changeImage,
-                    it
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    BookingInfoGroundCard(
+                        content = uiState.groundsCard,
+                        onClick = navigateToGroundsPage,
+                        changeImage = viewModel::changeImage,
+                        it
+                    )
+                    UserCard(
+                        user = UserCard(dto = uiState.groundsOwner, state = ComponentSuccess),
+                        reloadUserCards = {},
+                        showDetail = false
+                    )
+                }
             },
             retryOnErrorAction = viewModel::downloadBooking,
             state = uiState.groundsCardState
@@ -206,7 +216,11 @@ fun BookingInfoCard(
                 .fillMaxWidth()
                 .padding(dimensionResource(id = R.dimen.padding_medium))
         ) {
-            Text(text = stringResource(R.string.create_comment), modifier = Modifier, style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = stringResource(R.string.create_comment),
+                modifier = Modifier,
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }

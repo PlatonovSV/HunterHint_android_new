@@ -33,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -52,12 +53,14 @@ import ru.openunity.hunterhint.models.HuntingOffer
 import ru.openunity.hunterhint.models.Review
 import ru.openunity.hunterhint.ui.bottomAppBar.HuntBottomAppBar
 import ru.openunity.hunterhint.ui.components.ComponentScreen
+import ru.openunity.hunterhint.ui.components.ComponentSuccess
 import ru.openunity.hunterhint.ui.components.DataLoading
 import ru.openunity.hunterhint.ui.components.EmptyListMessage
 import ru.openunity.hunterhint.ui.components.ErrorScreenE
 import ru.openunity.hunterhint.ui.components.GroundImages
 import ru.openunity.hunterhint.ui.enums.HuntingMethods
 import ru.openunity.hunterhint.ui.enums.HuntingResources
+import ru.openunity.hunterhint.ui.personal.UserCard
 import ru.openunity.hunterhint.ui.search.RatingStars
 import ru.openunity.hunterhint.ui.theme.HunterHintTheme
 import java.time.LocalDateTime
@@ -171,6 +174,18 @@ fun GroundsPage(
                 ground = uiState.ground, modifier = Modifier
             )
         }
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                UserCard(
+                    user = UserCard(dto = uiState.groundsOwner, state = ComponentSuccess),
+                    reloadUserCards = {},
+                    showDetail = false
+                )
+            }
+        }
         when (val offers = uiState.offers) {
             is OffersLoading -> {
                 item {
@@ -239,7 +254,9 @@ fun GroundsPage(
                 },
                 retryOnErrorAction = reloadReviewList,
                 state = uiState.reviewsListState,
-                modifier = modifier.fillMaxWidth()
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(8.dp, 0.dp)
             )
         }
 
@@ -298,8 +315,13 @@ fun GroundsDescription(
                 style = textStyle,
                 color = textColor
             )
+            val lastIndex =
+                if (ground.area.toString().lastIndex > 6) 6 else ground.area.toString().lastIndex
             Text(
-                text = stringResource(R.string.grounds_area, ground.area),
+                text = stringResource(
+                    R.string.grounds_area,
+                    ground.area.toString().substring(0, lastIndex)
+                ),
                 style = textStyle,
                 color = textColor
             )
@@ -471,7 +493,8 @@ fun HuntingOfferPreview(modifier: Modifier = Modifier) {
 
 @Composable
 fun GroundsPageTitle(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigateToFilters: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -479,7 +502,8 @@ fun GroundsPageTitle(
                 color = MaterialTheme.colorScheme.tertiaryContainer,
                 shape = RoundedCornerShape(60.dp),
             )
-            .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+            .fillMaxWidth()
+            .clickable { navigateToFilters() }, verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Search,
@@ -511,7 +535,9 @@ fun Review(
             waitContent = {},
             successContent = {
                 ReviewContent(
-                    review = review, changeReviewImage = changeReviewImage, expandComment = expandComment
+                    review = review,
+                    changeReviewImage = changeReviewImage,
+                    expandComment = expandComment
                 )
             },
             retryOnErrorAction = reloadReview,
@@ -554,9 +580,7 @@ fun ReviewContent(
                 modifier = Modifier
                     .padding(12.dp)
                     .size(78.dp)
-                    .background(
-                        shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer
-                    )
+                    .clip(CircleShape)
 
             )
             Column(

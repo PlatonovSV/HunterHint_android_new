@@ -1,10 +1,8 @@
 package ru.openunity.hunterhint.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,12 +12,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.ui.bottomAppBar.HuntBottomAppBar
-import ru.openunity.hunterhint.ui.search.SearchAppBarTitle
 
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
@@ -38,19 +34,6 @@ fun TopAppBar(
     )
     when (currentScreen) {
         AppScreen.Search -> {
-            TopAppBar(title = {
-                SearchAppBarTitle(modifier = Modifier)
-            }, colors = appBarColors, actions = {
-                Row {
-                    IconButton(onClick = { onClickSearch() }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = stringResource(R.string.search_filter)
-                        )
-                    }
-                }
-            }, modifier = modifier
-            )
         }
 
         AppScreen.RegPhoneCode -> {

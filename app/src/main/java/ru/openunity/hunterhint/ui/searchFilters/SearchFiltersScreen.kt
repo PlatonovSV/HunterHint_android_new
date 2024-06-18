@@ -37,6 +37,7 @@ import ru.openunity.hunterhint.navigation.HuntTopAppBar
 import ru.openunity.hunterhint.ui.booking.HuntingMethodItem
 import ru.openunity.hunterhint.ui.booking.SelectDate
 import ru.openunity.hunterhint.ui.booking.UserDate
+import ru.openunity.hunterhint.ui.components.ComponentScreen
 import ru.openunity.hunterhint.ui.enums.GuidingPreference
 import ru.openunity.hunterhint.ui.enums.HuntingMethods
 import ru.openunity.hunterhint.ui.enums.HuntingResources
@@ -46,6 +47,7 @@ import ru.openunity.hunterhint.ui.registration.MonthDialog
 @Composable
 internal fun SearchFiltersRoute(
     navigateUp: () -> Unit,
+    navigateToSearchScreen: (List<Int>) -> Unit,
     modifier: Modifier = Modifier, viewModel: SearchFiltersViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,9 +73,21 @@ internal fun SearchFiltersRoute(
             )
         },
         modifier = modifier
-    ) {
-        SearchFiltersScreen(
-            uiState, viewModel, Modifier.padding(it)
+    ) { padding ->
+
+        ComponentScreen(
+            loadingStrResId = R.string.search,
+            waitContent = {
+                SearchFiltersScreen(
+                    uiState, viewModel, it.padding(padding)
+                )
+            },
+            successContent = {
+                navigateToSearchScreen(uiState.groundIds)
+            },
+            retryOnErrorAction = viewModel::findGrounds,
+            state = uiState.groundIdsState,
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

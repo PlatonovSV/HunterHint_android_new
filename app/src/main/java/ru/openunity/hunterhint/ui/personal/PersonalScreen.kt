@@ -1,9 +1,9 @@
 package ru.openunity.hunterhint.ui.personal
 
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,12 +55,15 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.models.BookingCard
+import ru.openunity.hunterhint.ui.components.ComponentScreen
 import ru.openunity.hunterhint.ui.components.EmptyListMessage
-import ru.openunity.hunterhint.ui.theme.HunterHintTheme
+import ru.openunity.hunterhint.ui.enums.AccessLevels
 import kotlin.math.max
 
 enum class PersonalSections(@StringRes val sectionNameId: Int) {
-    SETTINGS(R.string.settings), BOOKINGS(R.string.bookings), FAVORITES(R.string.favorites)
+    SETTINGS(R.string.settings), BOOKINGS(R.string.bookings), FAVORITES(R.string.favorites), ADMIN_USERS(
+        R.string.user_search
+    )
 }
 
 @Composable
@@ -71,11 +74,16 @@ fun PersonalAccountScreen(
     viewModel: PersonalViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val imgUrl = ""
+    if (!uiState.isLoggedIn) {
+        navigateToAuth()
+    }
     val currentSection = uiState.currentSection
     Column(modifier = modifier, verticalArrangement = Arrangement.Top) {
-        ProfilePhoto(imgUrl = imgUrl)
+        if (uiState.user.photoUrl.isNotBlank()) {
+            ProfilePhoto(imgUrl = uiState.user.photoUrl)
+        }
         PersonalMenu(
+            accessLevel = getRole(uiState.user.roleCode),
             currentSection = currentSection,
             changeSection = viewModel::changeSection
         )
@@ -93,10 +101,38 @@ fun PersonalAccountScreen(
             }
 
             PersonalSections.SETTINGS -> {
-                SettingsScreen(uiState, onClickLogOut = {
-                    viewModel.logout()
-                    navigateToAuth()
-                })
+                ComponentScreen(
+                    loadingStrResId = R.string.uploading,
+                    waitContent = {
+                        SettingsScreen(
+                            uiState = uiState,
+                            setProfilePhoto = viewModel::setProfilePhoto,
+                            removeImage = viewModel::removeImage,
+                            updateProfile = viewModel::updateProfile,
+                            onClickLogOut = viewModel::logout,
+                            updateNewName = viewModel::updateNewName,
+                            updateNewLastName = viewModel::updateNewLastName,
+                            updatePhoneNumber = viewModel::updatePhoneNumber,
+                            updateNewEmail = viewModel::updateNewEmail,
+                            updateNewPassword = viewModel::updateNewPassword,
+                            updateOldPassword = viewModel::updateOldPassword,
+                            onClickShowOldPassword = viewModel::changeOldPasswordVisibility,
+                            onClickShowNewPassword = viewModel::changeNewPasswordVisibility,
+                            deleteAccount = viewModel::deleteAccount
+
+                        )
+                    },
+                    successContent = {
+                        viewModel.reload()
+                    },
+                    retryOnErrorAction = viewModel::updateProfile,
+                    state = uiState.updateUploading,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            PersonalSections.ADMIN_USERS -> {
+                AdminUsersPanel(viewModel, uiState)
             }
         }
     }
@@ -109,7 +145,9 @@ fun ProfilePhoto(
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(0.dp, 16.dp)
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current).data(imgUrl)
@@ -118,24 +156,47 @@ fun ProfilePhoto(
             placeholder = painterResource(R.drawable.loading_img),
             contentDescription = stringResource(R.string.user_profile_photo),
             contentScale = ContentScale.Crop,
-            modifier = modifier.size(270.dp),
+            modifier = modifier
+                .size(270.dp)
+                .clip(CircleShape),
         )
     }
 }
 
 @Composable
 fun PersonalMenu(
+    accessLevel: AccessLevels,
     currentSection: PersonalSections,
     changeSection: (PersonalSections) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
         PersonalSections.entries.forEach {
-            HorizontalMenuElement(
-                isActive = it == currentSection,
-                changeSection = { changeSection(it) },
-                sectionNameId = it.sectionNameId
-            )
+            when {
+                accessLevel == AccessLevels.ADMIN && it == PersonalSections.BOOKINGS -> {
+
+                }
+
+                accessLevel == AccessLevels.ADMIN && it == PersonalSections.FAVORITES -> {
+
+                }
+
+                accessLevel != AccessLevels.ADMIN && it == PersonalSections.ADMIN_USERS -> {
+
+                }
+
+                else -> {
+                    HorizontalMenuElement(
+                        isActive = it == currentSection,
+                        changeSection = { changeSection(it) },
+                        sectionNameId = it.sectionNameId
+                    )
+                }
+            }
         }
     }
 }
@@ -193,23 +254,6 @@ fun HorizontalMenuElement(
 
 
 @Composable
-fun SettingsScreen(
-    uiState: PersonalUiState,
-    onClickLogOut: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.weight(1f))
-        LogoutButton(
-            onClickLogOut,
-            Modifier
-                .padding(22.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-    }
-}
-
-@Composable
 fun LogoutButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -225,18 +269,6 @@ fun LogoutButton(
 fun FavoritesScreen(modifier: Modifier = Modifier) {
     Column {
 
-    }
-}
-
-
-@Composable
-fun PersonalButton(
-    onClick: () -> Unit, @DrawableRes iconPainterResourceId: Int, modifier: Modifier = Modifier
-) {
-    Button(onClick = onClick, modifier = modifier) {
-        Row(modifier = Modifier) {
-            Icon(painter = painterResource(id = iconPainterResourceId), contentDescription = "")
-        }
     }
 }
 
@@ -261,13 +293,6 @@ class RoundedPolygonShape(
     }
 }
 
-@Composable
-fun PersonalAccountScreenPreview(modifier: Modifier = Modifier) {
-    HunterHintTheme {
-        PersonalAccountScreen({ },{})
-    }
-}
-
 
 @Composable
 fun UserBookings(
@@ -288,7 +313,7 @@ fun UserBookings(
             }
         } else {
             items(userBookings) {
-                UsersBookingCard(it,navigateToBookingInfo)
+                UsersBookingCard(it, navigateToBookingInfo)
             }
         }
     }
@@ -343,5 +368,4 @@ fun UsersBookingCardContent(
         )
     }
 }
-
 

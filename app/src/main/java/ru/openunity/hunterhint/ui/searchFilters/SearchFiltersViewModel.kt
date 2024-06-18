@@ -8,8 +8,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.ground.GroundRepository
 import ru.openunity.hunterhint.dto.GroundsNameDto
+import ru.openunity.hunterhint.ui.components.ComponentError
+import ru.openunity.hunterhint.ui.components.ComponentSuccess
 import ru.openunity.hunterhint.ui.registration.Month
 import java.io.IOException
 import java.time.LocalDateTime
@@ -228,44 +231,73 @@ class SearchFiltersViewModel @Inject constructor(
 
 
     fun findGrounds() {
-        val parameters = mutableListOf<Pair<String, String>>()
+        val params = getParams()
+        viewModelScope.launch {
+            _uiState.update { state ->
+                state.copy(
+                    groundIdsState = try {
+                        _uiState.update {
+                            it.copy(
+                                groundIds = groundRepository.getGroundIds(params)
+                            )
+                        }
+                        ComponentSuccess
+                    } catch (e: IOException) {
+                        ComponentError(R.string.server_error)
+                    } catch (e: HttpException) {
+                        ComponentError(R.string.no_internet)
+                    }
+                )
+            }
+
+        }
+    }
+
+    private fun getParams(): Map<String, String> {
+        val params = mutableMapOf<String, String>()
         val state = uiState.value
         if (state.minPrice > 0) {
-            parameters.add(Pair(SearchFilters.MIN_PRICE.name, state.minPrice.toString()))
+            params[SearchFilters.MIN_PRICE.id.toString()] = state.minPrice.toString()
         }
         if (state.maxPrice < Int.MAX_VALUE) {
-            parameters.add(Pair(SearchFilters.MAX_PRICE.name, state.maxPrice.toString()))
+            params[SearchFilters.MAX_PRICE.id.toString()] = state.maxPrice.toString()
         }
-        if (state.startDay.date <= (state.finalDay.date)) {
-            if (state.startDay.date.isAfter(LocalDateTime.now().plusHours(1))) {
-                parameters.add(Pair(SearchFilters.START_DATE.name, state.startDay.date.toString()))
-            }
-            if (state.finalDay.date.isAfter(LocalDateTime.now().plusHours(1))) {
-                parameters.add(Pair(SearchFilters.START_DATE.name, state.startDay.date.toString()))
-            }
+        if (state.startDay.date <= (state.finalDay.date) && state.startDay.date > LocalDateTime.now()) {
+            params[SearchFilters.START_DATE.id.toString()] = state.startDay.date.toString()
+            params[SearchFilters.FINAL_DATE.id.toString()] = state.finalDay.date.toString()
         }
-        if (state.resourcesHint.current.first == Int.MAX_VALUE) {
-            parameters.add(
-                Pair(
-                    SearchFilters.RESOURCES_TYPE.name,
-                    state.resourcesHint.current.second
-                )
-            )
+        if (state.resourcesHint.current.first != -1) {
+            params[SearchFilters.RESOURCES_TYPE.id.toString()] = state.resourcesHint.current.first.toString()
         }
-        if (state.methodHint.current.first == Int.MAX_VALUE) {
-            parameters.add(
-                Pair(
-                    SearchFilters.HUNTING_METHOD.name,
-                    state.methodHint.current.second
-                )
-            )
+        if (state.methodHint.current.first != -1) {
+            params[SearchFilters.HUNTING_METHOD.id.toString()] = state.methodHint.current.first.toString()
         }
         if (state.huntersNumber > 1) {
-            parameters.add(Pair(SearchFilters.NUMBER_HUNTERS.name, state.huntersNumber.toString()))
+            params[SearchFilters.NUMBER_HUNTERS.id.toString()] = state.huntersNumber.toString()
         }
         if (state.guestsNumber > 0) {
-            parameters.add(Pair(SearchFilters.NUMBER_GUESTS.name, state.guestsNumber.toString()))
+            params[SearchFilters.NUMBER_GUESTS.id.toString()] = state.guestsNumber.toString()
         }
+        if (state.guidingPreferenceId != -1) {
+            params[SearchFilters.SUPPORT.id.toString()] = state.guidingPreferenceId.toString()
+        }
+        if (state.regionHint.current.first != -1) {
+            params[SearchFilters.REGION.id.toString()] = state.regionHint.current.first.toString()
+        }
+        if (state.districtHint.current.first != -1) {
+            params[SearchFilters.MUNICIPAL_DISTRICT.id.toString()] = state.districtHint.current.first.toString()
+        }
+        if (state.groundsNameHint.current.first != -1) {
+            params[SearchFilters.GROUNDS_NAME.id.toString()] = state.groundsNameHint.current.first.toString()
+        }
+        if (state.isNeedsHotel) {
+            params[SearchFilters.IS_NEED_ACCOMMODATION.id.toString()] = ""
+        }
+        if (state.isNeedsBath) {
+
+            params[SearchFilters.IS_NEED_BATHHOUSE.id.toString()] = ""
+        }
+        return params
     }
 
     fun updateMinPrice(userInput: String) {

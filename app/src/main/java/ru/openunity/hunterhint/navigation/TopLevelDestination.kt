@@ -4,7 +4,7 @@ package ru.openunity.hunterhint.navigation
  * enum values that represent the screens in the app
  */
 enum class AppScreen(val route: String) {
-    Search(Search.name),
+    Search("${Search.name}/{groundIds}"),
     GroundsPage("${GroundsPage.name}/{groundsId}"),
     RegName(RegName.name),
     RegDate(RegDate.name),

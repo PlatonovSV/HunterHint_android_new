@@ -77,12 +77,16 @@ fun HunterHintApp(
     }) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppScreen.SearchFilters.route,
+            startDestination = AppScreen.Search.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             searchScreen(onGroundsCardClick = {
                 navController.navigate("${AppScreen.GroundsPage.name}/${it}")
-            })
+            },
+                navigateToFilters = {
+                    navController.navigate(AppScreen.SearchFilters.route)
+                }
+            )
             groundsPageScreen(
                 groundsId = backStackEntry?.arguments?.getString("groundsId")?.toIntOrNull() ?: -1,
                 canNavigateBack = navController.previousBackStackEntry != null,
@@ -215,6 +219,15 @@ fun HunterHintApp(
             searchFiltersScreen(
                 navigateUp = {
                     navController.navigateUp()
+                },
+                navigateToSearchScreen = { groundIds ->
+                    navController.navigate(
+                        "${AppScreen.Search.name}/${
+                            if (groundIds.isNotEmpty()) groundIds.joinToString(
+                                separator = "$"
+                            ) else "$"
+                        } "
+                    )
                 }
             )
         }

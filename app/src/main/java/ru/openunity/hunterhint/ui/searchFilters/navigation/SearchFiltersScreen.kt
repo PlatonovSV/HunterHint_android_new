@@ -7,8 +7,9 @@ import ru.openunity.hunterhint.ui.searchFilters.SearchFiltersRoute
 
 fun NavGraphBuilder.searchFiltersScreen(
     navigateUp: () -> Unit,
+    navigateToSearchScreen: (List<Int>) -> Unit,
 ) {
     composable(route = AppScreen.SearchFilters.route) {
-        SearchFiltersRoute(navigateUp)
+        SearchFiltersRoute(navigateUp, navigateToSearchScreen)
     }
 }

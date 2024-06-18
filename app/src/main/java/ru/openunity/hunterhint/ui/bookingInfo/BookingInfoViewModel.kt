@@ -113,10 +113,12 @@ class BookingInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val dto = groundRepository.getListOfGroundsPreview(listOf(id)).first()
+                val owner = groundRepository.getGroundsOwner(id)
                 _uiState.update {
                     it.copy(
                         groundsCardState = ComponentSuccess,
-                        groundsCard = dto
+                        groundsCard = dto,
+                        groundsOwner = owner
                     )
                 }
             } catch (e: IOException) {

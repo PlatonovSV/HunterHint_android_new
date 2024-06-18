@@ -1,6 +1,8 @@
 package ru.openunity.hunterhint.ui.searchFilters
 
 import ru.openunity.hunterhint.ui.booking.UserDate
+import ru.openunity.hunterhint.ui.components.ComponentState
+import ru.openunity.hunterhint.ui.components.ComponentWait
 import java.time.LocalDateTime
 
 data class SearchFiltersUiState(
@@ -27,6 +29,9 @@ data class SearchFiltersUiState(
 
     val minPrice: Int = 0,
     val maxPrice: Int = Int.MAX_VALUE,
+
+    val groundIdsState: ComponentState = ComponentWait,
+    val groundIds: List<Int> = listOf()
 ) {
 
 
@@ -74,7 +79,7 @@ data class Hint(
         if (keyQuery == key) {
             return this.copy(
                 hints = listOf(), current = hint.copy(
-                    first = Int.MAX_VALUE
+                    first = hint.first
                 )
             )
         }
