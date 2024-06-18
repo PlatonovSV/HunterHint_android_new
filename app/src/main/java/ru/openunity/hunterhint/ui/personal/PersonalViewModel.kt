@@ -23,11 +23,13 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.openunity.hunterhint.R
 import ru.openunity.hunterhint.data.booking.BookingRepository
+import ru.openunity.hunterhint.data.ground.GroundRepository
 import ru.openunity.hunterhint.data.user.UserRepository
 import ru.openunity.hunterhint.di.BucketsFolders
 import ru.openunity.hunterhint.di.ObjectStorageConfig
 import ru.openunity.hunterhint.dto.UserCardDto
 import ru.openunity.hunterhint.models.BookingCard
+import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.models.database.User
 import ru.openunity.hunterhint.ui.comment.convertUrisToFiles
 import ru.openunity.hunterhint.ui.components.ComponentError
@@ -35,6 +37,7 @@ import ru.openunity.hunterhint.ui.components.ComponentLoading
 import ru.openunity.hunterhint.ui.components.ComponentState
 import ru.openunity.hunterhint.ui.components.ComponentSuccess
 import ru.openunity.hunterhint.ui.components.ComponentWait
+import ru.openunity.hunterhint.ui.enums.AccessLevels
 import ru.openunity.hunterhint.ui.enums.Status
 import java.io.IOException
 import java.util.UUID
@@ -44,7 +47,8 @@ import javax.inject.Inject
 class PersonalViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userRepository: UserRepository,
-    private val bookingRepository: BookingRepository
+    private val bookingRepository: BookingRepository,
+    private val groundRepository: GroundRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PersonalUiState())
     val uiState = _uiState.asStateFlow()
@@ -92,6 +96,48 @@ class PersonalViewModel @Inject constructor(
                             it.copy(
                                 bookingCards = BookingCard.fromDtoList(bookingCards)
                             )
+                        }
+                    }
+                }
+                delay(3000)
+            }
+        }
+
+        viewModelScope.launch {
+            while (true) {
+                val user = _uiState.value.user
+                if (user.jwt.isNotEmpty()) {
+                    if (user.roleCode == AccessLevels.OWNER.code) {
+
+                        try {
+                            val groundsId =
+                                groundRepository.getGroundsByOwnerId(_uiState.value.user.id)
+                            val groundCards =
+                                groundRepository.getListOfGroundsPreview(listOf(groundsId))
+                            val card = if (groundCards.isEmpty()) {
+                                GroundsCard(id = Int.MIN_VALUE)
+                            } else {
+                                groundCards.first()
+                            }
+
+                            val usersCards = bookingRepository.getAllClientsList(
+                                user.jwt
+                            ).map {
+                                UserCard(
+                                    dto = UserCardDto(),
+                                    state = ComponentSuccess
+                                )
+                            }
+
+                            _uiState.update {
+                                it.copy(
+                                    ownersClients = usersCards,
+                                    ownersGround = card
+                                )
+                            }
+
+                        } catch (_: IOException) {
+                        } catch (_: HttpException) {
                         }
                     }
                 }
@@ -178,6 +224,32 @@ class PersonalViewModel @Inject constructor(
 
         }
 
+
+    }
+
+    fun changeImage(isIncrement: Boolean) {
+        val images = uiState.value.ownersGround.images
+        var numberOfCurrentImage = uiState.value.ownersGround.numberOfCurrentImage
+        if (isIncrement) {
+            if (numberOfCurrentImage == images.size - 1) {
+                numberOfCurrentImage = 0
+            } else {
+                numberOfCurrentImage++
+            }
+        } else {
+            if (numberOfCurrentImage == 0) {
+                numberOfCurrentImage = images.size - 1
+            } else {
+                numberOfCurrentImage--
+            }
+        }
+        _uiState.update {
+            it.copy(
+                ownersGround = it.ownersGround.copy(
+                    numberOfCurrentImage = numberOfCurrentImage
+                )
+            )
+        }
 
     }
 
@@ -386,8 +458,7 @@ class PersonalViewModel @Inject constructor(
 
                     val resultState = try {
                         val dto: UserCardDto = userRepository.getUserCard(
-                            userId = userCard.userId,
-                            token = _uiState.value.user.jwt
+                            userId = userCard.userId, token = _uiState.value.user.jwt
                         )
                         newCard = newCard.copy(
                             dto = dto
@@ -412,15 +483,13 @@ class PersonalViewModel @Inject constructor(
 
     private fun updateUserCard(newValue: UserCard) {
         _uiState.update { uiState ->
-            uiState.copy(
-                foundByAdmin = _uiState.value.foundByAdmin.map {
-                    if (it.userId == newValue.userId) {
-                        newValue
-                    } else {
-                        it
-                    }
+            uiState.copy(foundByAdmin = _uiState.value.foundByAdmin.map {
+                if (it.userId == newValue.userId) {
+                    newValue
+                } else {
+                    it
                 }
-            )
+            })
         }
     }
 
@@ -451,14 +520,11 @@ class PersonalViewModel @Inject constructor(
             var newCardDto = UserCardDto()
             val result = try {
                 val updatedUserId = userRepository.setUserStatus(
-                    _uiState.value.user.jwt,
-                    currentCard.userId,
-                    currentCard.dto.status
+                    _uiState.value.user.jwt, currentCard.userId, currentCard.dto.status
                 )
                 if (updatedUserId != -1L) {
                     newCardDto = userRepository.getUserCard(
-                        _uiState.value.user.jwt,
-                        updatedUserId
+                        _uiState.value.user.jwt, updatedUserId
                     )
                     ComponentSuccess
                 } else {
@@ -484,8 +550,7 @@ class PersonalViewModel @Inject constructor(
     fun selectUserCardForAdmin(userCard: UserCard) {
         _uiState.update {
             it.copy(
-                bottomSheetUserCard = userCard,
-                showBottomSheet = true
+                bottomSheetUserCard = userCard, showBottomSheet = true
             )
         }
     }
@@ -549,14 +614,11 @@ class PersonalViewModel @Inject constructor(
             var newCardDto = UserCardDto()
             val result = try {
                 val updatedUserId = userRepository.setUserAccessLevel(
-                    _uiState.value.user.jwt,
-                    currentCard.userId,
-                    currentCard.dto.accessLevel
+                    _uiState.value.user.jwt, currentCard.userId, currentCard.dto.accessLevel
                 )
                 if (updatedUserId != -1L) {
                     newCardDto = userRepository.getUserCard(
-                        _uiState.value.user.jwt,
-                        updatedUserId
+                        _uiState.value.user.jwt, updatedUserId
                     )
                     ComponentSuccess
                 } else {
@@ -572,22 +634,18 @@ class PersonalViewModel @Inject constructor(
     }
 
     private fun updateCards(
-        userId: Long,
-        newCardDto: UserCardDto,
-        result: ComponentState
+        userId: Long, newCardDto: UserCardDto, result: ComponentState
     ) {
         _uiState.update { state ->
-            state.copy(
-                foundByAdmin = state.foundByAdmin.map {
-                    if (it.userId == userId) {
-                        it.copy(
-                            dto = newCardDto,
-                            state = result
-                        )
-                    } else {
-                        it
-                    }
-                })
+            state.copy(foundByAdmin = state.foundByAdmin.map {
+                if (it.userId == userId) {
+                    it.copy(
+                        dto = newCardDto, state = result
+                    )
+                } else {
+                    it
+                }
+            })
         }
     }
 
@@ -607,9 +665,7 @@ class PersonalViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val updatedUserId = userRepository.setUserStatus(
-                    _uiState.value.user.jwt,
-                    _uiState.value.user.id,
-                    Status.DELETED.code
+                    _uiState.value.user.jwt, _uiState.value.user.id, Status.DELETED.code
                 )
                 if (updatedUserId != -1L) {
                     logout()
@@ -624,12 +680,8 @@ class PersonalViewModel @Inject constructor(
 
 
 enum class UserAttributes(val id: String) {
-    JWT("0"),
-    PHOTO_URL("1"),
-    NAME("2"),
-    LAST_NAME("3"),
-    PHONE_NUMBER("4"),
-    EMAIL("5"),
-    OLD_PASSWORD("6"),
+    JWT("0"), PHOTO_URL("1"), NAME("2"), LAST_NAME("3"), PHONE_NUMBER("4"), EMAIL("5"), OLD_PASSWORD(
+        "6"
+    ),
     NEW_PASSWORD("7"),
 }

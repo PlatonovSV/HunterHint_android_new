@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -58,17 +59,20 @@ import ru.openunity.hunterhint.models.BookingCard
 import ru.openunity.hunterhint.ui.components.ComponentScreen
 import ru.openunity.hunterhint.ui.components.EmptyListMessage
 import ru.openunity.hunterhint.ui.enums.AccessLevels
+import ru.openunity.hunterhint.ui.search.GroundItem
 import kotlin.math.max
 
 enum class PersonalSections(@StringRes val sectionNameId: Int) {
     SETTINGS(R.string.settings), BOOKINGS(R.string.bookings), FAVORITES(R.string.favorites), ADMIN_USERS(
         R.string.user_search
-    )
+    ),
+    OWNER(R.string.owner)
 }
 
 @Composable
 fun PersonalAccountScreen(
     navigateToAuth: () -> Unit,
+    navigateToCreateGround: () -> Unit,
     navigateToBookingInfo: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PersonalViewModel = hiltViewModel()
@@ -134,6 +138,51 @@ fun PersonalAccountScreen(
             PersonalSections.ADMIN_USERS -> {
                 AdminUsersPanel(viewModel, uiState)
             }
+
+            PersonalSections.OWNER -> {
+                OwnerPanel(navigateToCreateGround,viewModel, uiState)
+            }
+        }
+    }
+}
+
+@Composable
+fun OwnerPanel(
+    navigateToCreateGround: () -> Unit,
+    viewModel: PersonalViewModel, uiState: PersonalUiState) {
+    Column {
+        LazyColumn {
+            item {
+                if (uiState.ownersGround.id != -1) {
+                    if (uiState.ownersGround.id == Int.MIN_VALUE) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(64.dp)
+                        ) {
+                            Button(onClick = navigateToCreateGround) {
+                                Text(
+                                    text = stringResource(id = R.string.create_ground),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    } else {
+                        GroundItem(
+                            changeImage = viewModel::changeImage, groundCard = uiState.ownersGround, onClick = { }, modifier = Modifier
+                        )
+                    }
+                }
+            }
+            items(uiState.ownersClients) { card ->
+                UserCard(
+                    user = card,
+                    reloadUserCards = {},
+                    select = {}
+                )
+            }
         }
     }
 }
@@ -171,7 +220,9 @@ fun PersonalMenu(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()).fillMaxWidth(),
+        modifier = modifier
+            .horizontalScroll(rememberScrollState())
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -186,6 +237,10 @@ fun PersonalMenu(
                 }
 
                 accessLevel != AccessLevels.ADMIN && it == PersonalSections.ADMIN_USERS -> {
+
+                }
+
+                accessLevel != AccessLevels.OWNER && it == PersonalSections.OWNER -> {
 
                 }
 
@@ -266,10 +321,8 @@ fun LogoutButton(
 }
 
 @Composable
-fun FavoritesScreen(modifier: Modifier = Modifier) {
-    Column {
+fun FavoritesScreen() {
 
-    }
 }
 
 fun RoundedPolygon.getBounds() = calculateBounds().let { Rect(it[0], it[1], it[2], it[3]) }

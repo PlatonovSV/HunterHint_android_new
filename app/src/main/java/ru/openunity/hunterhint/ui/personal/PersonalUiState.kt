@@ -3,6 +3,7 @@ package ru.openunity.hunterhint.ui.personal
 import android.net.Uri
 import ru.openunity.hunterhint.dto.UserCardDto
 import ru.openunity.hunterhint.models.BookingCard
+import ru.openunity.hunterhint.models.GroundsCard
 import ru.openunity.hunterhint.models.database.User
 import ru.openunity.hunterhint.ui.components.ComponentLoading
 import ru.openunity.hunterhint.ui.components.ComponentState
@@ -38,6 +39,10 @@ data class PersonalUiState(
     val newPassword: String = "",
     val isOldPasswordShow: Boolean = true,
     val isNewPasswordShow: Boolean = true,
+
+    val ownersGround: GroundsCard = GroundsCard(),
+    //val ownersClientIds: List<Long> = listOf(),
+    val ownersClients: List<UserCard> = listOf()
 )
 
 data class UserCard(

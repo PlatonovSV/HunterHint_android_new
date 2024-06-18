@@ -63,4 +63,5 @@ interface UserRetrofitService {
         @Path("id") userId: Long,
         @Body accessLevel: Int
     ): Long
+
 }

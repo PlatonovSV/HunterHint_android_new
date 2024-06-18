@@ -21,5 +21,6 @@ enum class AppScreen(val route: String) {
     BookingInfo("${BookingInfo.name}/{bookingId}"),
     Comment("${Comment.name}/{bookingId}"),
     SearchFilters(SearchFilters.name),
-    SearchFiltersScreen(SearchFiltersScreen.name)
+    SearchFiltersScreen(SearchFiltersScreen.name),
+    GroundsCreation(GroundsCreation.name)
 }

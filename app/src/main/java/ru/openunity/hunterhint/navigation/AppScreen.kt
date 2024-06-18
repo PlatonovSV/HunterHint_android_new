@@ -26,6 +26,7 @@ import ru.openunity.hunterhint.ui.authorization.navigation.authPhoneCodeScreen
 import ru.openunity.hunterhint.ui.booking.navigation.bookingScreen
 import ru.openunity.hunterhint.ui.bookingInfo.navigation.bookingInfoScreen
 import ru.openunity.hunterhint.ui.comment.navigation.commentScreen
+import ru.openunity.hunterhint.ui.groundsCreationScreen.navigation.groundsCreationScreen
 import ru.openunity.hunterhint.ui.groundsPage.navigation.groundsPageScreen
 import ru.openunity.hunterhint.ui.personal.PersonalAccountScreen
 import ru.openunity.hunterhint.ui.registration.Country
@@ -197,6 +198,9 @@ fun HunterHintApp(
                     },
                     navigateToBookingInfo = { id ->
                         navController.navigate("${AppScreen.BookingInfo.name}/$id")
+                    },
+                    navigateToCreateGround = {
+                        navController.navigate(AppScreen.GroundsCreation.name)
                     }
                 )
             }
@@ -228,6 +232,12 @@ fun HunterHintApp(
                             ) else "$"
                         } "
                     )
+                }
+            )
+            groundsCreationScreen(
+                navController = navController,
+                navigateUp = {
+                    navController.navigateUp()
                 }
             )
         }

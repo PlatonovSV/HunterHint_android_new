@@ -9,6 +9,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.openunity.hunterhint.dto.DistrictDto
 import ru.openunity.hunterhint.dto.GroundsNameDto
+import ru.openunity.hunterhint.dto.NewGroundDto
 import ru.openunity.hunterhint.dto.UserCardDto
 import ru.openunity.hunterhint.models.Ground
 import ru.openunity.hunterhint.models.GroundsCard
@@ -36,4 +37,10 @@ interface GroundRetrofitService {
 
     @GET("ground/{groundId}/owner")
     suspend fun getGroundsOwner(@Path("groundId") groundId: Int): UserCardDto
+
+    @POST("ground/new")
+    suspend fun createGround(@Body dto: NewGroundDto): Int
+
+    @GET("ground/by-owner/{id}")
+    suspend fun getGroundsByOwnerId(@Path("id") id: Long): Int
 }
