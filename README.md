@@ -1,4 +1,13 @@
-# HunterHint_android_new
-![JI_THLLQ3Rc](https://github.com/PlatonovSV/HunterHint_android_new/assets/124249177/b1e4437b-1c51-432b-a476-b69c7b2dc588)
-![ZNl8c4mUZMY](https://github.com/PlatonovSV/HunterHint_android_new/assets/124249177/74cc7f54-8968-4c0e-8c01-d7c91a46eb57)
+![1.JPG](readme%2F1.JPG)
+![3.JPG](readme%2F3.JPG)
+![4.JPG](readme%2F4.JPG)
+![2.JPG](readme%2F2.JPG)
+![5.JPG](readme%2F5.JPG)
+![6.JPG](readme%2F6.JPG)
+![7.JPG](readme%2F7.JPG)
+![8.JPG](readme%2F8.JPG)
+![9.JPG](readme%2F9.JPG)
+![10.JPG](readme%2F10.JPG)
+![11.JPG](readme%2F11.JPG)
+![12.JPG](readme%2F12.JPG)
 
